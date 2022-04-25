@@ -1,0 +1,6 @@
+out/
+.vs/
+*.exe
+*.dll
+*.manifest
+*.pdb
