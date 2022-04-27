@@ -13,7 +13,9 @@ public:
 	std::vector<int> textures;
 	std::vector<cgp::mesh_drawable> meshes;
 private:
+	std::vector<cgp::mesh> rawMeshes;
 	void processNode(aiNode* node, const aiScene* scene);
-	void convertMesh(aiMesh* m, const aiScene* scene, cgp::mesh_drawable& out);
+	void convertMesh(aiMesh* m, const aiScene* scene);
 	void processMaterials(const aiScene* scene);
+	void ShipLoader::drawMeshes(const aiScene* scene);
 };

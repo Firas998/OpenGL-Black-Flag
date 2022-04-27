@@ -27,15 +27,15 @@ void ShipLoader::loadObj() {
 
 	processNode(scene->mRootNode, scene);
 
+	drawMeshes(scene);
+
 }
 
 void ShipLoader::processNode(aiNode* node, const aiScene* scene) {
 	// process all the node's meshes (if any)
 	for (unsigned int i = 0; i < node->mNumMeshes; i++) {
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-		mesh_drawable out;
-		convertMesh(mesh, scene, out); 
-		meshes.push_back(out);
+		convertMesh(mesh, scene); 
 	}
 	// then do the same for each of its children
 	for (unsigned int i = 0; i < node->mNumChildren; i++) {
@@ -43,9 +43,11 @@ void ShipLoader::processNode(aiNode* node, const aiScene* scene) {
 	}
 }
 
-void ShipLoader::convertMesh(aiMesh* m, const aiScene* scene, mesh_drawable& out) {
+void ShipLoader::convertMesh(aiMesh* m, const aiScene* scene) {
 
-	mesh cgp_mesh;
+	int mtlId = m->mMaterialIndex;
+	mesh& cgp_mesh = rawMeshes[mtlId];
+	int n = cgp_mesh.position.size();
 
 	for (unsigned int i = 0; i < m->mNumVertices; i++) {
 		vec3 vertex;
@@ -83,36 +85,41 @@ void ShipLoader::convertMesh(aiMesh* m, const aiScene* scene, mesh_drawable& out
 		
 		
 		if (face.mNumIndices == 2) {
-			ids = { face.mIndices[0], face.mIndices[1], face.mIndices[0] };
+			ids = { n+face.mIndices[0], n+face.mIndices[1], n+face.mIndices[0] };
 		}
 		else {
-			ids = { face.mIndices[0], face.mIndices[1], face.mIndices[2] };
+			ids = { n+face.mIndices[0], n+face.mIndices[1], n+face.mIndices[2] };
 		}
 		cgp_mesh.connectivity.push_back(ids);
 	}
 
-	cgp_mesh.fill_empty_field();
-	
-	out.initialize(cgp_mesh);
+}
 
-	int mtlId = m->mMaterialIndex;
-	aiMaterial* mtl = scene->mMaterials[mtlId];
+void ShipLoader::drawMeshes(const aiScene* scene) {
+	for (int i = 0; i < scene->mNumMaterials; i++) {
+		rawMeshes[i].fill_empty_field();
+		mesh_drawable mesh;
+		mesh.initialize(rawMeshes[i]);
 
-	out.texture = textures[mtlId];
+		aiMaterial* mtl = scene->mMaterials[i];
 
-	float alpha;
-	mtl->Get(AI_MATKEY_OPACITY, alpha);
-	out.shading.alpha = alpha;
+		mesh.texture = textures[i];
 
-	aiColor3D ambient(0.f, 0.f, 0.f);
-	mtl->Get(AI_MATKEY_COLOR_AMBIENT, ambient);
-	aiColor3D diffuse(0.f, 0.f, 0.f);
-	mtl->Get(AI_MATKEY_COLOR_DIFFUSE, ambient);
-	aiColor3D specular(0.f, 0.f, 0.f);
-	mtl->Get(AI_MATKEY_COLOR_SPECULAR, ambient);
+		float alpha;
+		mtl->Get(AI_MATKEY_OPACITY, alpha);
+		mesh.shading.alpha = alpha;
 
-	out.shading.phong = { ambient.r + diffuse.r + specular.r, ambient.g + diffuse.g + specular.g, ambient.b + diffuse.b + specular.b };
+		aiColor3D ambient(0.f, 0.f, 0.f);
+		mtl->Get(AI_MATKEY_COLOR_AMBIENT, ambient);
+		aiColor3D diffuse(0.f, 0.f, 0.f);
+		mtl->Get(AI_MATKEY_COLOR_DIFFUSE, ambient);
+		aiColor3D specular(0.f, 0.f, 0.f);
+		mtl->Get(AI_MATKEY_COLOR_SPECULAR, ambient);
 
+		mesh.shading.phong = { ambient.r + diffuse.r + specular.r, ambient.g + diffuse.g + specular.g, ambient.b + diffuse.b + specular.b };
+
+		meshes.push_back(mesh);
+	}
 }
 
 void ShipLoader::processMaterials(const aiScene* scene) {
@@ -127,5 +134,7 @@ void ShipLoader::processMaterials(const aiScene* scene) {
 		else {
 			textures.push_back(opengl_load_texture_image("assets/grass.png"));
 		}
+		mesh mesh;
+		rawMeshes.push_back(mesh);
 	}
 }
