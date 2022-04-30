@@ -6,8 +6,7 @@
 
 // The element of the GUI that are not already stored in other structures
 struct gui_parameters {
-	bool display_frame      = true;
-	bool display_wireframe  = false;
+	bool firstPersonCamera = false;
 };
 
 
