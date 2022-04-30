@@ -132,7 +132,7 @@ void ShipLoader::processMaterials(const aiScene* scene) {
 			textures.push_back(opengl_load_texture_image("assets/BlackPearl/" + textureName));
 		}
 		else {
-			textures.push_back(opengl_load_texture_image("assets/grass.png"));
+			textures.push_back(opengl_load_texture_image("assets/placeholder.jpg"));
 		}
 		mesh mesh;
 		rawMeshes.push_back(mesh);
