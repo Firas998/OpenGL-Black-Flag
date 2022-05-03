@@ -2,6 +2,8 @@
 
 #include "cgp/cgp.hpp"
 #include "ship/ship.hpp"
+#include "cubemap.hpp"
+
 
 // The element of the GUI that are not already stored in other structures
 struct gui_parameters {
@@ -26,6 +28,7 @@ struct scene_structure {
 	gui_parameters gui;                       // Standard GUI element storage
 
 	ship ship;
+	Cubemap cubemap;
 	
 	/*cgp::mesh_drawable terrain;
 	cgp::mesh_drawable tree;

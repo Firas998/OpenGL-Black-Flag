@@ -1,6 +1,5 @@
 #include "scene.hpp"
 
-
 using namespace cgp;
 
 void scene_structure::initialize()
@@ -12,6 +11,7 @@ void scene_structure::initialize()
 	environment.camera.axis = camera_spherical_coordinates_axis::z;
 	environment.camera.look_at({ -50.0f,0.0f,0.0f }, { 10,0,10 });
 
+	cubemap.initialize();
 
 	ship.create_ship();
 
@@ -31,15 +31,17 @@ void scene_structure::display() {
 	}
 		
 
+	cubemap.draw();
+
 	// Update the current time
 	timer.update();
 
 	// Basic elements of the scene
 	environment.light = environment.camera.position();
 
-	rotation_transform rotation = rotation_transform::from_axis_angle({ 0,1,0 }, 0);
+	/*rotation_transform rotation = rotation_transform::from_axis_angle({ 0,1,0 }, 0);
 	vec3 translation = { 0,0,0 };
-	ship.display_ship(environment, rotation, translation);
+	ship.display_ship(environment, rotation, translation);*/
 
 	//draw(terrain, environment);
 	//if (gui.display_wireframe) {
