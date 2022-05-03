@@ -27,6 +27,7 @@ void scene_structure::display() {
 
 	// Prevent camera from going underwater
 	if (environment.camera.theta < 0) environment.camera.theta = 0;
+	if (environment.camera.theta > Pi / 2) environment.camera.theta = Pi / 2;
 
 	if (gui.firstPersonCamera) {
 		environment.camera.distance_to_center = 3;
