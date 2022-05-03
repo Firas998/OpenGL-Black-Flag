@@ -12,5 +12,4 @@ private:
 	unsigned int cubemap;
 	unsigned int shader;
 	cgp::skybox_drawable skybox;
-	unsigned int loadCubemap(std::vector<std::string> faces);
 };
