@@ -29,7 +29,7 @@ GLFWwindow* standard_window_initialization(int width=0, int height=0);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 	scene.gui.zoomLevel -= yoffset;
 	if (scene.gui.zoomLevel < 10) scene.gui.zoomLevel = 10;
-	//if (scene.gui.zoomLevel > 200) scene.gui.zoomLevel = 200;
+	if (scene.gui.zoomLevel > 200) scene.gui.zoomLevel = 200;
 }
 
 int main(int, char* argv[])
