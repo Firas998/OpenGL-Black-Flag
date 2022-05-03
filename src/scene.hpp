@@ -2,7 +2,6 @@
 
 #include "cgp/cgp.hpp"
 #include "ship/ship.hpp"
-#include "key_positions_structure.hpp"
 
 // The element of the GUI that are not already stored in other structures
 struct gui_parameters {
@@ -37,8 +36,6 @@ struct scene_structure {
 
 	// Timer used for the animation
 	cgp::timer_interval timer;
-
-	keyframe_structure keyframe;
 
 
 	// ****************************** //

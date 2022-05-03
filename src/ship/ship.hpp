@@ -7,6 +7,6 @@
 struct ship {
 	ShipLoader loader;
 	void create_ship();
-	void display_ship(cgp::scene_environment_basic_camera_spherical_coords environment);
+	void display_ship(cgp::scene_environment_basic_camera_spherical_coords environment, cgp::rotation_transform rotation, cgp::vec3 translation);
 };
 
