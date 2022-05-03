@@ -26,6 +26,13 @@ scene_structure scene;
 
 GLFWwindow* standard_window_initialization(int width=0, int height=0);
 
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+	std::cout << yoffset << std::endl;
+	scene.gui.zoomLevel -= yoffset;
+	if (scene.gui.zoomLevel < 10) scene.gui.zoomLevel = 10;
+	if (scene.gui.zoomLevel > 100) scene.gui.zoomLevel = 100;
+}
+
 int main(int, char* argv[])
 {
 	std::cout << "Run " << argv[0] << std::endl;
@@ -37,6 +44,8 @@ int main(int, char* argv[])
 	
 	// Standard Initialization with dimension in pixels
 	GLFWwindow* window = standard_window_initialization(); 
+
+	glfwSetScrollCallback(window, scroll_callback);
 	
 	// Custom scene initialization
 	std::cout << "Initialize data of the scene ..." << std::endl;
@@ -71,6 +80,8 @@ int main(int, char* argv[])
 
 	return 0;
 }
+
+
 
 
 

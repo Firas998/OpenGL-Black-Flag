@@ -7,6 +7,8 @@
 // The element of the GUI that are not already stored in other structures
 struct gui_parameters {
 	bool firstPersonCamera = false;
+	float zoomLevel = 50;
+	float defaultScroll = 0;
 };
 
 
