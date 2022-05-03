@@ -2,6 +2,9 @@
 #include "cgp/cgp.hpp" // Give access to the complete CGP library
 #include <iostream>  
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "third_party/stb_image.h"
+
 // Custom scene of this code
 #include "scene.hpp"
 
@@ -43,6 +46,14 @@ int main(int, char* argv[])
 	
 	// Standard Initialization with dimension in pixels
 	GLFWwindow* window = standard_window_initialization(); 
+	
+	glfwSetWindowTitle(window, "INF443: Black Flag - Louis Caubet & Firas Ben Jedidia");
+	
+	// Set Window Icon
+	GLFWimage images[1];
+	images[0].pixels = stbi_load("assets/icon.png", &images[0].width, &images[0].height, 0, 4);
+	glfwSetWindowIcon(window, 1, images);
+	stbi_image_free(images[0].pixels);
 
 	glfwSetScrollCallback(window, scroll_callback);
 	
@@ -70,6 +81,9 @@ int main(int, char* argv[])
 		
 		// End of ImGui display and handle GLFW events
 		helper_common.frame_end(window);
+
+		// Update window title - do this at the end to override title set inside CGP
+		scene.set_window_title(window);
 	}
 	
 	// Cleanup
