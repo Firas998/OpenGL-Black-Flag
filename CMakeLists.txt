@@ -6,6 +6,8 @@ cmake_minimum_required (VERSION 3.8)
 project ("07-projet")
 
 find_package(assimp CONFIG REQUIRED)
+find_package(glslang CONFIG REQUIRED)
+find_package(RapidJSON CONFIG REQUIRED)
 
 # Relative path to the library
 # => Adapt this directory to your relative path if needed
@@ -54,6 +56,7 @@ include(${ABS_PATH_TO_LIBRARY})
 #  @src_files_third_party: all third party libraries compiled with the project
 add_executable(${executable_name} ${src_files_cgp} ${src_files_third_party} ${src_files} "src/scene.cpp" "src/scene.hpp")
 target_link_libraries(${executable_name} assimp::assimp)
+target_link_libraries(${executable_name} HLSL SPIRV glslang OGLCompiler rapidjson)
 
 
 # Set Compiler for Unix system

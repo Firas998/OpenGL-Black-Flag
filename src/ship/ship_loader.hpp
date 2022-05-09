@@ -17,5 +17,5 @@ private:
 	void processNode(aiNode* node, const aiScene* scene);
 	void convertMesh(aiMesh* m, const aiScene* scene);
 	void processMaterials(const aiScene* scene);
-	void ShipLoader::drawMeshes(const aiScene* scene);
+	void drawMeshes(const aiScene* scene);
 };
