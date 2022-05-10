@@ -9,7 +9,7 @@ Louis Caubet & Firas Ben Jedidia
 -   OpenGL 4.3 or later. You need to update the glad version used by CGP. To do so, download glad from https://stratus.binets.fr/s/iBSsXigDxtsJMjS
     Replace the glad folder in `library/third_party` with the downloaded version.
 
--   Assimp: install using vspkg:
+-   Assimp: install using vcpkg:
 
     > ```
     > git clone https://github.com/Microsoft/vcpkg.git
@@ -19,7 +19,7 @@ Louis Caubet & Firas Ben Jedidia
     > vcpkg install assimp
     > ```
     >
-    > Set the path to `vspkg.cmake` in `CMakePresets.json`.
+    > Set the path to `vcpkg.cmake` in `CMakePresets.json`.
 
--   glslang: install using vspkg : `./vcpkg install glslang --triplet x64-windows`
--   rapidjson: install using vspkg : `./vcpkg install rapidjson --triplet x64-windows`
+-   glslang: install using vcpkg : `./vcpkg install glslang --triplet x64-windows`
+-   rapidjson: install using vcpkg : `./vcpkg install rapidjson --triplet x64-windows`
