@@ -23,31 +23,30 @@
 #include <utility>
 #include <string>
 #include "glfft_common.hpp"
-#include "glfft_interface.hpp"
 
 namespace GLFFT
 {
 
-struct WisdomPass
-{
-    struct
+    struct WisdomPass
     {
-        unsigned Nx;
-        unsigned Ny;
-        unsigned radix;
-        Mode mode;
-        Target input_target;
-        Target output_target;
-        FFTOptions::Type type;
-    } pass;
+        struct
+        {
+            unsigned Nx;
+            unsigned Ny;
+            unsigned radix;
+            Mode mode;
+            Target input_target;
+            Target output_target;
+            FFTOptions::Type type;
+        } pass;
 
-    double cost;
+        double cost;
 
-    bool operator==(const WisdomPass &other) const
-    {
-        return std::memcmp(&pass, &other.pass, sizeof(pass)) == 0;
-    }
-};
+        bool operator==(const WisdomPass& other) const
+        {
+            return std::memcmp(&pass, &other.pass, sizeof(pass)) == 0;
+        }
+    };
 
 }
 
@@ -56,7 +55,7 @@ namespace std
     template<>
     struct hash<GLFFT::WisdomPass>
     {
-        std::size_t operator()(const GLFFT::WisdomPass &params) const
+        std::size_t operator()(const GLFFT::WisdomPass& params) const
         {
             std::size_t h = 0;
             hash<uint8_t> hasher;
@@ -73,42 +72,40 @@ namespace std
 namespace GLFFT
 {
 
-// Adds information which depends on the GPU vendor.
-// This can speed up learning process, since there will be fewer "obviously wrong" settings to test.
-struct FFTStaticWisdom
-{
-    enum Tristate { True = 1, False = 0, DontCare = -1 };
+    // Adds information which depends on the GPU vendor.
+    // This can speed up learning process, since there will be fewer "obviously wrong" settings to test.
+    struct FFTStaticWisdom
+    {
+        enum Tristate { True = 1, False = 0, DontCare = -1 };
 
-    unsigned min_workgroup_size = 1;
-    unsigned min_workgroup_size_shared = 1;
-    unsigned max_workgroup_size = 128; // GLES 3.1 mandates support for this.
-    unsigned min_vector_size = 2;
-    unsigned max_vector_size = 4;
-    Tristate shared_banked = DontCare;
-};
+        unsigned min_workgroup_size = 1;
+        unsigned min_workgroup_size_shared = 1;
+        unsigned max_workgroup_size = 128; // GLES 3.1 mandates support for this.
+        unsigned min_vector_size = 2;
+        unsigned max_vector_size = 4;
+        Tristate shared_banked = DontCare;
+    };
 
-class FFTWisdom
-{
+    class FFTWisdom
+    {
     public:
-        std::pair<double, FFTOptions::Performance> learn_optimal_options(Context *ctx,
-                unsigned Nx, unsigned Ny, unsigned radix,
-                Mode mode, Target input_target, Target output_target, const FFTOptions::Type &type);
+        const std::pair<double, FFTOptions::Performance> learn_optimal_options(unsigned Nx, unsigned Ny, unsigned radix,
+            Mode mode, Target input_target, Target output_target, const FFTOptions::Type& type);
 
-        void learn_optimal_options_exhaustive(Context *ctx,
-                unsigned Nx, unsigned Ny,
-                Type type, Target input_target, Target output_target, const FFTOptions::Type &fft_type);
+        void learn_optimal_options_exhaustive(unsigned Nx, unsigned Ny,
+            Type type, Target input_target, Target output_target, const FFTOptions::Type& fft_type);
 
         const std::pair<const WisdomPass, FFTOptions::Performance>* find_optimal_options(unsigned Nx, unsigned Ny, unsigned radix,
-                Mode mode, Target input_target, Target output_target, const FFTOptions::Type &base_options) const;
+            Mode mode, Target input_target, Target output_target, const FFTOptions::Type& base_options) const;
 
         const FFTOptions::Performance& find_optimal_options_or_default(unsigned Nx, unsigned Ny, unsigned radix,
-                Mode mode, Target input_target, Target output_target, const FFTOptions &base_options) const;
+            Mode mode, Target input_target, Target output_target, const FFTOptions& base_options) const;
 
         void set_static_wisdom(FFTStaticWisdom static_wisdom) { this->static_wisdom = static_wisdom; }
-        static FFTStaticWisdom get_static_wisdom_from_renderer(Context *context);
+        static FFTStaticWisdom get_static_wisdom_from_renderer(const char* renderer);
 
-        void set_bench_params(unsigned warmup,
-                unsigned iterations, unsigned dispatches, double timeout)
+        void set_bench_params(unsigned warmup, unsigned iterations, unsigned dispatches,
+            double timeout)
         {
             params.warmup = warmup;
             params.iterations = iterations;
@@ -116,21 +113,13 @@ class FFTWisdom
             params.timeout = timeout;
         }
 
-#ifdef GLFFT_SERIALIZATION
-        // Serialization interface.
-        std::string archive() const;
-        void extract(const char *json);
-#endif
-
     private:
         std::unordered_map<WisdomPass, FFTOptions::Performance> library;
 
-        std::pair<double, FFTOptions::Performance> study(Context *context,
-                const WisdomPass &pass, FFTOptions::Type options) const;
+        std::pair<double, FFTOptions::Performance> study(const WisdomPass& pass, FFTOptions::Type options) const;
 
-        double bench(Context *cmd, Resource *output, Resource *input,
-                const WisdomPass &pass, const FFTOptions &options,
-                const std::shared_ptr<ProgramCache> &cache) const;
+        double bench(GLuint output, GLuint input, const WisdomPass& pass, const FFTOptions& options,
+            const std::shared_ptr<ProgramCache>& cache) const;
 
         FFTStaticWisdom static_wisdom;
 
@@ -141,9 +130,8 @@ class FFTWisdom
             unsigned dispatches = 50;
             double timeout = 1.0;
         } params;
-};
+    };
 
 }
 
 #endif
-

@@ -22,10 +22,15 @@ else()
    message(STATUS "The absolute path to the library is set to ${ABS_PATH_TO_LIBRARY}")
 endif()
 
+# Include precompiled FFTw3
+set(FFTW3_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}/precompiled/fftw3")
+include_directories(${FFTW3_INCLUDE_DIRS})
+set(FFTW3_LIBRARIES "${CMAKE_CURRENT_LIST_DIR}/precompiled/fftw3/libfftw3-3.lib")
+
 # List the files of the current local project 
 #    Default behavior: Automatically add all hpp and cpp files from src/ directory, and .glsl from shaders/
 #    You may want to change this definition in case of specific file structure
-file(GLOB_RECURSE src_files ${CMAKE_CURRENT_LIST_DIR}/src/*.[ch]pp ${CMAKE_CURRENT_LIST_DIR}/shaders/*.glsl ${CMAKE_CURRENT_LIST_DIR}/src/ship/*.[ch]pp ${CMAKE_CURRENT_LIST_DIR}/src/third_party/stb_image.h)
+file(GLOB_RECURSE src_files ${CMAKE_CURRENT_LIST_DIR}/src/*.[ch]pp ${CMAKE_CURRENT_LIST_DIR}/shaders/*.glsl ${CMAKE_CURRENT_LIST_DIR}/src/*.[ch])
 
 
 # Generate the executable_name from the current directory name
@@ -88,7 +93,7 @@ endif()
 
 
 # Link options for Unix
-target_link_libraries(${executable_name} ${GLFW_LIBRARIES})
+target_link_libraries(${executable_name} ${GLFW_LIBRARIES} ${FFTW3_LIBRARIES})
 if(UNIX)
    target_link_libraries(${executable_name} dl) #dlopen is required by Glad on Unix
 endif()

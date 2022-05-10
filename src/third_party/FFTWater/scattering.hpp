@@ -1,4 +1,6 @@
-/* Copyright (C) 2015 Hans-Kristian Arntzen <maister@archlinux.us>
+/* Copyright (c) 2015-2017, ARM Limited and Contributors
+ *
+ * SPDX-License-Identifier: MIT
  *
  * Permission is hereby granted, free of charge,
  * to any person obtaining a copy of this software and associated documentation files (the "Software"),
@@ -16,35 +18,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef GLFFT_INTERFACE_HPP__
-#define GLFFT_INTERFACE_HPP__
+#ifndef SCATTERING_HPP__
+#define SCATTERING_HPP__
 
- // Implement this header somewhere in your include path and include relevant GL/GLES API headers.
-#include "glfft_api_headers.hpp"
+#include "common.hpp"
+#include "vector_math.h"
 
-#ifndef GLFFT_GLSL_LANG_STRING
-#error GLFFT_GLSL_LANG_STRING must be defined to e.g. "#version 310 es\n" or "#version 430 core\n".
-#endif
+class Scattering
+{
+public:
+    ~Scattering();
+    Scattering();
+    Scattering(Scattering&&) = delete;
+    void operator=(Scattering&&) = delete;
 
-#ifndef GLFFT_LOG_OVERRIDE
-// Implement this.
-void glfft_log(const char* fmt, ...);
-#else
-#define glfft_log GLFFT_LOG_OVERRIDE
-#endif
+    void generate(unsigned size, vec3 sun_dir);
+    GLuint get_texture() const { return tex; }
 
-#ifndef GLFFT_TIME_OVERRIDE
-// Implement this.
-void glfft_time();
-#else
-#define glfft_time GLFFT_TIME_OVERRIDE
-#endif
-
-#ifndef GLFFT_READ_FILE_STRING_OVERRIDE
-// Implement this.
-bool glfft_read_file_string(const char* path, char** out_buf);
-#else
-#define glfft_read_file_string GLFFT_READ_FILE_STRING_OVERRIDE
-#endif
+private:
+    GLuint tex = 0;
+    GLuint prog = 0;
+};
 
 #endif

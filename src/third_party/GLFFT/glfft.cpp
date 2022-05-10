@@ -19,41 +19,25 @@
 #include "glfft.hpp"
 #include <algorithm>
 #include <stdexcept>
+#include <numeric>
 #include <fstream>
 #include <sstream>
-#include <numeric>
 #include <assert.h>
-#include <cmath>
 
 #define GLFFT_SHADER_FROM_FILE
 
-#ifdef GLFFT_CLI_ASYNC
-#include "glfft_cli.hpp"
-#endif
-
 #ifndef GLFFT_SHADER_FROM_FILE
-#include "glsl/fft_common.comp"
-#include "glsl/fft_radix4.comp"
-#include "glsl/fft_radix8.comp"
-#include "glsl/fft_radix16.comp"
-#include "glsl/fft_radix64.comp"
-#include "glsl/fft_shared.comp"
-#include "glsl/fft_main.comp"
+#include "glsl/fft_common.inc"
+#include "glsl/fft_radix4.inc"
+#include "glsl/fft_radix8.inc"
+#include "glsl/fft_radix16.inc"
+#include "glsl/fft_radix64.inc"
+#include "glsl/fft_shared.inc"
+#include "glsl/fft_main.inc"
 #endif
 
 using namespace std;
 using namespace GLFFT;
-
-enum Bindings
-{
-    BindingSSBOIn = 0,
-    BindingSSBOOut = 1,
-    BindingSSBOAux = 2,
-    BindingUBO = 3,
-    BindingTexture0 = 4,
-    BindingTexture1 = 5,
-    BindingImage = 6
-};
 
 struct WorkGroupSize
 {
@@ -70,18 +54,7 @@ struct Radix
     bool shared_banked;
 };
 
-static unsigned next_pow2(unsigned v)
-{
-    v--;
-    v |= v >> 16;
-    v |= v >> 8;
-    v |= v >> 4;
-    v |= v >> 2;
-    v |= v >> 1;
-    return v + 1;
-}
-
-static void reduce(unsigned &wg_size, unsigned &divisor)
+static void reduce(unsigned& wg_size, unsigned& divisor)
 {
     if (divisor > 1 && wg_size >= divisor)
     {
@@ -99,21 +72,21 @@ static unsigned radix_to_wg_z(unsigned radix)
 {
     switch (radix)
     {
-        case 16:
-            return 4;
+    case 16:
+        return 4;
 
-        case 64:
-            return 8;
+    case 64:
+        return 8;
 
-        default:
-            return 1;
+    default:
+        return 1;
     }
 }
 
 static Radix build_radix(unsigned Nx, unsigned Ny,
-        Mode mode, unsigned vector_size, bool shared_banked, unsigned radix,
-        WorkGroupSize size,
-        bool pow2_stride)
+    Mode mode, unsigned vector_size, bool shared_banked, unsigned radix,
+    WorkGroupSize size,
+    bool pow2_stride)
 {
     unsigned wg_x = 0, wg_y = 0;
 
@@ -133,35 +106,35 @@ static Radix build_radix(unsigned Nx, unsigned Ny,
 
     switch (mode)
     {
-        case Vertical:
-            // If we have pow2_stride, we need to transform 2^n + 1 elements horizontally,
-            // so just add a single workgroup in X.
-            // We pad by going up to pow2 stride anyways.
-            // We will transform some garbage,
-            // but it's better than transforming close to double the amount.
-            wg_x = (2 * Nx) / (vector_size * size.x) + pow2_stride;
-            wg_y = Ny / (size.y * radix);
-            break;
+    case Vertical:
+        // If we have pow2_stride, we need to transform 2^n + 1 elements horizontally,
+        // so just add a single workgroup in X.
+        // We pad by going up to pow2 stride anyways.
+        // We will transform some garbage,
+        // but it's better than transforming close to double the amount.
+        wg_x = (2 * Nx) / (vector_size * size.x) + pow2_stride;
+        wg_y = Ny / (size.y * radix);
+        break;
 
-        case VerticalDual:
-            vector_size = max(vector_size, 4u);
-            wg_x = (4 * Nx) / (vector_size * size.x);
-            wg_y = Ny / (size.y * radix);
-            break;
+    case VerticalDual:
+        vector_size = max(vector_size, 4u);
+        wg_x = (4 * Nx) / (vector_size * size.x);
+        wg_y = Ny / (size.y * radix);
+        break;
 
-        case Horizontal:
-            wg_x = (2 * Nx) / (vector_size * radix * size.x);
-            wg_y = Ny / size.y;
-            break;
+    case Horizontal:
+        wg_x = (2 * Nx) / (vector_size * radix * size.x);
+        wg_y = Ny / size.y;
+        break;
 
-        case HorizontalDual:
-            vector_size = max(vector_size, 4u);
-            wg_x = (4 * Nx) / (vector_size * radix * size.x);
-            wg_y = Ny / size.y;
-            break;
+    case HorizontalDual:
+        vector_size = max(vector_size, 4u);
+        wg_x = (4 * Nx) / (vector_size * radix * size.x);
+        wg_y = Ny / size.y;
+        break;
 
-        default:
-            assert(0);
+    default:
+        assert(0);
     }
 
     return { size, wg_x, wg_y, radix, vector_size, shared_banked };
@@ -175,20 +148,20 @@ static Radix build_resolve_radix(unsigned Nx, unsigned Ny, WorkGroupSize size)
 
 // Smaller FFT with larger workgroups are not always possible to create.
 static bool is_radix_valid(unsigned Nx, unsigned Ny,
-        Mode mode, unsigned vector_size, unsigned radix,
-        WorkGroupSize size,
-        bool pow2_stride)
+    Mode mode, unsigned vector_size, unsigned radix,
+    WorkGroupSize size,
+    bool pow2_stride)
 {
     auto res = build_radix(Nx, Ny,
-            mode, vector_size, false, radix,
-            size,
-            pow2_stride);
+        mode, vector_size, false, radix,
+        size,
+        pow2_stride);
 
     return res.num_workgroups_x > 0 && res.num_workgroups_y > 0;
 }
 
 static double find_cost(unsigned Nx, unsigned Ny, Mode mode, unsigned radix,
-        const FFTOptions &options, const FFTWisdom &wisdom)
+    const FFTOptions& options, const FFTWisdom& wisdom)
 {
     auto opt = wisdom.find_optimal_options(Nx, Ny, radix, mode, SSBO, SSBO, options.type);
 
@@ -206,7 +179,7 @@ struct CostPropagate
     CostPropagate(double cost, vector<unsigned> radices)
         : cost(cost), radices(move(radices)) {}
 
-    void merge_if_better(const CostPropagate &a, const CostPropagate &b)
+    void merge_if_better(const CostPropagate& a, const CostPropagate& b)
     {
         double new_cost = a.cost + b.cost;
 
@@ -223,24 +196,24 @@ struct CostPropagate
 };
 
 static vector<Radix> split_radices(unsigned Nx, unsigned Ny, Mode mode, Target input_target, Target output_target,
-        const FFTOptions &options,
-        bool pow2_stride, const FFTWisdom &wisdom, double &accumulate_cost)
+    const FFTOptions& options,
+    bool pow2_stride, const FFTWisdom& wisdom, double& accumulate_cost)
 {
     unsigned N;
     switch (mode)
     {
-        case Vertical:
-        case VerticalDual:
-            N = Ny;
-            break;
+    case Vertical:
+    case VerticalDual:
+        N = Ny;
+        break;
 
-        case Horizontal:
-        case HorizontalDual:
-            N = Nx;
-            break;
+    case Horizontal:
+    case HorizontalDual:
+        N = Nx;
+        break;
 
-        default:
-            return {};
+    default:
+        return {};
     }
 
     // N == 1 is for things like Nx1 transforms where we don't do any vertical transforms.
@@ -250,25 +223,25 @@ static vector<Radix> split_radices(unsigned Nx, unsigned Ny, Mode mode, Target i
     }
 
     // Treat cost 0.0 as invalid.
-    double cost_table[8] = {0.0};
+    double cost_table[8] = { 0.0 };
     CostPropagate cost_propagate[32];
 
     // Fill table with fastest known ways to do radix 4, radix 8, radix 16, and 64.
     // We'll then find the optimal subdivision which has the lowest additive cost.
-    cost_table[2] = find_cost(Nx, Ny, mode,  4, options, wisdom);
-    cost_table[3] = find_cost(Nx, Ny, mode,  8, options, wisdom);
+    cost_table[2] = find_cost(Nx, Ny, mode, 4, options, wisdom);
+    cost_table[3] = find_cost(Nx, Ny, mode, 8, options, wisdom);
     cost_table[4] = find_cost(Nx, Ny, mode, 16, options, wisdom);
     cost_table[6] = find_cost(Nx, Ny, mode, 64, options, wisdom);
 
     auto is_valid = [&](unsigned radix) -> bool {
         unsigned workgroup_size_z = radix_to_wg_z(radix);
-        auto &opt = wisdom.find_optimal_options_or_default(Nx, Ny, radix, mode, SSBO, SSBO, options);
+        auto& opt = wisdom.find_optimal_options_or_default(Nx, Ny, radix, mode, SSBO, SSBO, options);
 
         // We don't want pow2_stride to round up a very inefficient work group and make the is_valid test pass.
         return is_radix_valid(Nx, Ny,
-                mode, opt.vector_size, radix,
-                { opt.workgroup_size_x, opt.workgroup_size_y, workgroup_size_z },
-                false);
+            mode, opt.vector_size, radix,
+            { opt.workgroup_size_x, opt.workgroup_size_y, workgroup_size_z },
+            false);
     };
 
     // If our work-space is too small to allow certain radices, we disable them from consideration here.
@@ -289,7 +262,7 @@ static vector<Radix> split_radices(unsigned Nx, unsigned Ny, Mode mode, Target i
     // Now start bubble this up all the way to N, starting from radix 16.
     for (unsigned i = 4; (1u << i) <= N; i++)
     {
-        auto &target = cost_propagate[i];
+        auto& target = cost_propagate[i];
 
         for (unsigned r = 2; i - r >= r; r++)
         {
@@ -308,7 +281,7 @@ static vector<Radix> split_radices(unsigned Nx, unsigned Ny, Mode mode, Target i
     // For composite radices like 16 and 64, they are built with 4x4 and 8x8, so we only
     // need p factors for 4 and 8 for those cases.
     // The cost function doesn't depend in which order we split the radices.
-    auto &cost = cost_propagate[unsigned(log2(float(N)))];
+    auto& cost = cost_propagate[unsigned(log2(float(N)))];
     auto radices = move(cost.radices);
 
     sort(begin(radices), end(radices), greater<unsigned>());
@@ -330,23 +303,23 @@ static vector<Radix> split_radices(unsigned Nx, unsigned Ny, Mode mode, Target i
         // Use known performance options as a fallback.
         // We used SSBO -> SSBO cost functions to find the optimal radix splits,
         // but replace first and last options with Image -> SSBO / SSBO -> Image cost functions if appropriate.
-        auto &orig_opt = wisdom.find_optimal_options_or_default(Nx, Ny, radix, mode, SSBO, SSBO, options);
-        auto &opts = wisdom.find_optimal_options_or_default(Nx, Ny, radix, mode,
-                first ? input_target : SSBO,
-                last ? output_target : SSBO,
-                { orig_opt, options.type });
+        auto& orig_opt = wisdom.find_optimal_options_or_default(Nx, Ny, radix, mode, SSBO, SSBO, options);
+        auto& opts = wisdom.find_optimal_options_or_default(Nx, Ny, radix, mode,
+            first ? input_target : SSBO,
+            last ? output_target : SSBO,
+            { orig_opt, options.type });
 
         radices_out.push_back(build_radix(Nx, Ny,
-                    mode, opts.vector_size, opts.shared_banked, radix,
-                    { opts.workgroup_size_x, opts.workgroup_size_y, radix_to_wg_z(radix) },
-                    pow2_stride));
+            mode, opts.vector_size, opts.shared_banked, radix,
+            { opts.workgroup_size_x, opts.workgroup_size_y, radix_to_wg_z(radix) },
+            pow2_stride));
     }
 
     accumulate_cost += cost.cost;
     return radices_out;
 }
 
-Program* ProgramCache::find_program(const Parameters &parameters) const
+GLuint ProgramCache::find_program(const Parameters& parameters) const
 {
     auto itr = programs.find(parameters);
     if (itr != end(programs))
@@ -355,27 +328,26 @@ Program* ProgramCache::find_program(const Parameters &parameters) const
     }
     else
     {
-        return nullptr;
+        return 0;
     }
 }
 
-void ProgramCache::insert_program(const Parameters &parameters, std::unique_ptr<Program> program)
+void ProgramCache::insert_program(const Parameters& parameters, GLuint program)
 {
-    programs[parameters] = move(program);
+    programs[parameters] = Program(program);
 }
 
-Program* FFT::get_program(const Parameters &params)
+GLuint FFT::get_program(const Parameters& params)
 {
-    Program *prog = cache->find_program(params);
+    GLuint prog = cache->find_program(params);
     if (!prog)
     {
-        auto newprog = build_program(params);
-        if (!newprog)
+        prog = build_program(params);
+        if (!prog)
         {
             throw runtime_error("Failed to compile shader.\n");
         }
-        prog = newprog.get();
-        cache->insert_program(params, move(newprog));
+        cache->insert_program(params, prog);
     }
     return prog;
 }
@@ -384,28 +356,28 @@ static inline unsigned mode_to_input_components(Mode mode)
 {
     switch (mode)
     {
-        case HorizontalDual:
-        case VerticalDual:
-            return 4;
+    case HorizontalDual:
+    case VerticalDual:
+        return 4;
 
-        case Horizontal:
-        case Vertical:
-        case ResolveComplexToReal:
-            return 2;
+    case Horizontal:
+    case Vertical:
+    case ResolveComplexToReal:
+        return 2;
 
-        case ResolveRealToComplex:
-            return 1;
+    case ResolveRealToComplex:
+        return 1;
 
-        default:
-            return 0;
+    default:
+        return 0;
     }
 }
 
-FFT::FFT(Context *context, unsigned Nx, unsigned Ny,
-        unsigned radix, unsigned p,
-        Mode mode, Target input_target, Target output_target,
-        std::shared_ptr<ProgramCache> program_cache, const FFTOptions &options)
-    : context(context), cache(move(program_cache)), size_x(Nx), size_y(Ny)
+FFT::FFT(unsigned Nx, unsigned Ny,
+    unsigned radix, unsigned p,
+    Mode mode, Target input_target, Target output_target,
+    std::shared_ptr<ProgramCache> program_cache, const FFTOptions& options)
+    : cache(move(program_cache)), size_x(Nx), size_y(Ny)
 {
     set_texture_offset_scale(0.5f / Nx, 0.5f / Ny, 1.0f / Nx, 1.0f / Ny);
 
@@ -436,9 +408,9 @@ FFT::FFT(Context *context, unsigned Nx, unsigned Ny,
     else
     {
         res = build_radix(Nx, Ny,
-                mode, options.performance.vector_size, options.performance.shared_banked, radix,
-                { options.performance.workgroup_size_x, options.performance.workgroup_size_y, radix_to_wg_z(radix) },
-                false);
+            mode, options.performance.vector_size, options.performance.shared_banked, radix,
+            { options.performance.workgroup_size_x, options.performance.workgroup_size_y, radix_to_wg_z(radix) },
+            false);
     }
 
     const Parameters params = {
@@ -452,6 +424,7 @@ FFT::FFT(Context *context, unsigned Nx, unsigned Ny,
         input_target,
         output_target,
         p == 1,
+        false,
         res.shared_banked,
         options.type.fp16, options.type.input_fp16, options.type.output_fp16,
         options.type.normalize,
@@ -467,39 +440,39 @@ FFT::FFT(Context *context, unsigned Nx, unsigned Ny,
         params,
         res.num_workgroups_x, res.num_workgroups_y,
         uv_scale_x,
-        next_pow2(res.num_workgroups_x * params.workgroup_size_x),
         get_program(params),
+        0u,
     };
 
     passes.push_back(pass);
 }
 
-static inline void print_radix_splits(Context *context, const vector<Radix> radices[2])
+static inline void print_radix_splits(const vector<Radix> radices[2])
 {
-    context->log("Transform #1\n");
-    for (auto &radix : radices[0])
+    glfft_log("Transform #1\n");
+    for (auto& radix : radices[0])
     {
-        context->log("  Size: (%u, %u, %u)\n",
-                radix.size.x, radix.size.y, radix.size.z);
-        context->log("  Dispatch: (%u, %u)\n",
-                radix.num_workgroups_x, radix.num_workgroups_y);
-        context->log("  Radix: %u\n",
-                radix.radix);
-        context->log("  VectorSize: %u\n\n",
-                radix.vector_size);
+        glfft_log("  Size: (%u, %u, %u)\n",
+            radix.size.x, radix.size.y, radix.size.z);
+        glfft_log("  Dispatch: (%u, %u)\n",
+            radix.num_workgroups_x, radix.num_workgroups_y);
+        glfft_log("  Radix: %u\n",
+            radix.radix);
+        glfft_log("  VectorSize: %u\n\n",
+            radix.vector_size);
     }
 
-    context->log("Transform #2\n");
-    for (auto &radix : radices[1])
+    glfft_log("Transform #2\n");
+    for (auto& radix : radices[1])
     {
-        context->log("  Size: (%u, %u, %u)\n",
-                radix.size.x, radix.size.y, radix.size.z);
-        context->log("  Dispatch: (%u, %u)\n",
-                radix.num_workgroups_x, radix.num_workgroups_y);
-        context->log("  Radix: %u\n",
-                radix.radix);
-        context->log("  VectorSize: %u\n\n",
-                radix.vector_size);
+        glfft_log("  Size: (%u, %u, %u)\n",
+            radix.size.x, radix.size.y, radix.size.z);
+        glfft_log("  Dispatch: (%u, %u)\n",
+            radix.num_workgroups_x, radix.num_workgroups_y);
+        glfft_log("  Radix: %u\n",
+            radix.radix);
+        glfft_log("  VectorSize: %u\n\n",
+            radix.vector_size);
     }
 }
 
@@ -507,35 +480,35 @@ static inline unsigned type_to_input_components(Type type)
 {
     switch (type)
     {
-        case ComplexToComplex:
-        case ComplexToReal:
-            return 2;
+    case ComplexToComplex:
+    case ComplexToReal:
+        return 2;
 
-        case RealToComplex:
-            return 1;
+    case RealToComplex:
+        return 1;
 
-        case ComplexToComplexDual:
-            return 4;
+    case ComplexToComplexDual:
+        return 4;
 
-        default:
-            return 0;
+    default:
+        return 0;
     }
 }
 
-FFT::FFT(Context *context, unsigned Nx, unsigned Ny,
-        Type type, Direction direction, Target input_target, Target output_target,
-        std::shared_ptr<ProgramCache> program_cache, const FFTOptions &options, const FFTWisdom &wisdom)
-    : context(context), cache(move(program_cache)), size_x(Nx), size_y(Ny)
+FFT::FFT(unsigned Nx, unsigned Ny,
+    Type type, Direction direction, Target input_target, Target output_target,
+    std::shared_ptr<ProgramCache> program_cache, const FFTOptions& options, const FFTWisdom& wisdom)
+    : cache(move(program_cache)), size_x(Nx), size_y(Ny)
 {
     set_texture_offset_scale(0.5f / Nx, 0.5f / Ny, 1.0f / Nx, 1.0f / Ny);
 
     size_t temp_buffer_size = Nx * Ny * sizeof(float) * (type == ComplexToComplexDual ? 4 : 2);
     temp_buffer_size >>= options.type.output_fp16;
 
-    temp_buffer = context->create_buffer(nullptr, temp_buffer_size, AccessStreamCopy);
+    temp_buffer.init(nullptr, temp_buffer_size, GL_STREAM_COPY);
     if (output_target != SSBO)
     {
-        temp_buffer_image = context->create_buffer(nullptr, temp_buffer_size, AccessStreamCopy);
+        temp_buffer_image.init(nullptr, temp_buffer_size, GL_STREAM_COPY);
     }
 
     bool expand = false;
@@ -579,36 +552,36 @@ FFT::FFT(Context *context, unsigned Nx, unsigned Ny,
 
     switch (direction)
     {
-        case Forward:
-            modes[0] = type == ComplexToComplexDual ? HorizontalDual : Horizontal;
-            modes[1] = type == ComplexToComplexDual ? VerticalDual : Vertical;
+    case Forward:
+        modes[0] = type == ComplexToComplexDual ? HorizontalDual : Horizontal;
+        modes[1] = type == ComplexToComplexDual ? VerticalDual : Vertical;
 
-            targets[0] = input_target;
-            targets[1] = Ny > 1 ? SSBO : output_target;
-            targets[2] = targets[1];
-            targets[3] = output_target;
+        targets[0] = input_target;
+        targets[1] = Ny > 1 ? SSBO : output_target;
+        targets[2] = targets[1];
+        targets[3] = output_target;
 
-            radices[0] = split_radices(Nx, Ny, modes[0], targets[0], targets[1], options, false, wisdom, cost);
-            radices[1] = split_radices(Nx, Ny, modes[1], targets[2], targets[3], options, expand, wisdom, cost);
-            break;
+        radices[0] = split_radices(Nx, Ny, modes[0], targets[0], targets[1], options, false, wisdom, cost);
+        radices[1] = split_radices(Nx, Ny, modes[1], targets[2], targets[3], options, expand, wisdom, cost);
+        break;
 
-        case Inverse:
-        case InverseConvolve:
-            modes[0] = type == ComplexToComplexDual ? VerticalDual : Vertical;
-            modes[1] = type == ComplexToComplexDual ? HorizontalDual : Horizontal;
+    case Inverse:
+    case InverseConvolve:
+        modes[0] = type == ComplexToComplexDual ? VerticalDual : Vertical;
+        modes[1] = type == ComplexToComplexDual ? HorizontalDual : Horizontal;
 
-            targets[0] = input_target;
-            targets[1] = Ny > 1 ? SSBO : input_target;
-            targets[2] = targets[1];
-            targets[3] = output_target;
+        targets[0] = input_target;
+        targets[1] = Ny > 1 ? SSBO : input_target;
+        targets[2] = targets[1];
+        targets[3] = output_target;
 
-            radices[0] = split_radices(Nx, Ny, modes[0], targets[0], targets[1], options, expand, wisdom, cost);
-            radices[1] = split_radices(Nx, Ny, modes[1], targets[2], targets[3], options, false, wisdom, cost);
-            break;
+        radices[0] = split_radices(Nx, Ny, modes[0], targets[0], targets[1], options, expand, wisdom, cost);
+        radices[1] = split_radices(Nx, Ny, modes[1], targets[2], targets[3], options, false, wisdom, cost);
+        break;
     }
 
-#if 0
-    print_radix_splits(context, radices);
+#if 1
+    print_radix_splits(radices);
 #endif
 
     passes.reserve(radices[0].size() + radices[1].size() + expand);
@@ -616,12 +589,16 @@ FFT::FFT(Context *context, unsigned Nx, unsigned Ny,
     unsigned index = 0;
     unsigned last_index = (radices[1].empty() && !expand) ? 0 : 1;
 
-    for (auto &radix_direction : radices)
+    for (auto& radix_direction : radices)
     {
         unsigned p = 1;
         unsigned i = 0;
-        
-        for (auto &radix : radix_direction)
+
+        // If we have R2C or C2R, we have a padded buffer to accomodate 2^n + 1 elements horizontally.
+        // For simplicity, this is implemented as a shader variant.
+        bool pow2_stride = expand && modes[index] == Vertical;
+
+        for (auto& radix : radix_direction)
         {
             // If this is the last pass and we're writing to an image, use a special shader variant.
             bool last_pass = index == last_index && i == radix_direction.size() - 1;
@@ -643,17 +620,20 @@ FFT::FFT(Context *context, unsigned Nx, unsigned Ny,
                 in_target,
                 out_target,
                 p == 1,
+                pow2_stride,
                 radix.shared_banked,
                 options.type.fp16, input_fp16, options.type.output_fp16,
                 options.type.normalize,
             };
 
+            // For last pass, we don't know how our resource will be used afterwards,
+            // so let barrier decisions be up to the API user.
             const Pass pass = {
                 params,
                 radix.num_workgroups_x, radix.num_workgroups_y,
                 uv_scale_x,
-                next_pow2(radix.num_workgroups_x * params.workgroup_size_x),
                 get_program(params),
+                last_pass ? 0u : GL_SHADER_STORAGE_BARRIER_BIT,
             };
 
             passes.push_back(pass);
@@ -677,7 +657,7 @@ FFT::FFT(Context *context, unsigned Nx, unsigned Ny,
             auto base_opts = options;
             base_opts.type.input_fp16 = input_fp16;
 
-            auto &opts = wisdom.find_optimal_options_or_default(Nx, Ny, 2, mode, in_target, out_target, base_opts);
+            auto& opts = wisdom.find_optimal_options_or_default(Nx, Ny, 2, mode, in_target, out_target, base_opts);
             auto res = build_resolve_radix(Nx, Ny, { opts.workgroup_size_x, opts.workgroup_size_y, 1 });
 
             const Parameters params = {
@@ -692,6 +672,7 @@ FFT::FFT(Context *context, unsigned Nx, unsigned Ny,
                 out_target,
                 true,
                 false,
+                false,
                 base_opts.type.fp16, base_opts.type.input_fp16, base_opts.type.output_fp16,
                 base_opts.type.normalize,
             };
@@ -701,8 +682,8 @@ FFT::FFT(Context *context, unsigned Nx, unsigned Ny,
                 Nx / res.size.x,
                 Ny / res.size.y,
                 uv_scale_x,
-                next_pow2(Nx),
                 get_program(params),
+                GL_SHADER_STORAGE_BARRIER_BIT,
             };
 
             passes.push_back(pass);
@@ -712,8 +693,18 @@ FFT::FFT(Context *context, unsigned Nx, unsigned Ny,
     }
 }
 
-string FFT::load_shader_string(const char *path)
+string FFT::load_shader_string(const char* path)
 {
+    /*char* buf = nullptr;
+    if (!glfft_read_file_string(path, &buf))
+    {
+        throw runtime_error("Failed to load shader file from disk.\n");
+    }
+
+    string ret(buf);
+    free(buf);
+    return ret;*/
+
     ifstream file(path);
     if (!file.good())
     {
@@ -724,51 +715,58 @@ string FFT::load_shader_string(const char *path)
     return buf.str();
 }
 
-void FFT::store_shader_string(const char *path, const string &source)
+void FFT::store_shader_string(const char* path, const string& source)
 {
     ofstream file(path);
     file.write(source.data(), source.size());
 }
 
-unique_ptr<Program> FFT::build_program(const Parameters &params)
+GLuint FFT::build_program(const Parameters& params)
 {
     string str;
     str.reserve(16 * 1024);
 
 #if 0
-    context->log("Building program:\n");
-    context->log(
-            "   WG_X:      %u\n"
-            "   WG_Y:      %u\n"
-            "   WG_Z:      %u\n"
-            "   P1:        %u\n"
-            "   Radix:     %u\n"
-            "   Dir:       %d\n"
-            "   Mode:      %u\n"
-            "   InTarget:  %u\n"
-            "   OutTarget: %u\n"
-            "   FP16:      %u\n"
-            "   InFP16:    %u\n"
-            "   OutFP16:   %u\n"
-            "   Norm:      %u\n",
-            params.workgroup_size_x,
-            params.workgroup_size_y,
-            params.workgroup_size_z,
-            params.p1,
-            params.radix,
-            params.direction,
-            params.mode,
-            params.input_target,
-            params.output_target,
-            params.fft_fp16,
-            params.input_fp16,
-            params.output_fp16,
-            params.fft_normalize);
+    glfft_log("Building program:\n");
+    glfft_log(
+        "   WG_X:      %u\n"
+        "   WG_Y:      %u\n"
+        "   WG_Z:      %u\n"
+        "   P1:        %u\n"
+        "   Radix:     %u\n"
+        "   Dir:       %d\n"
+        "   Mode:      %u\n"
+        "   InTarget:  %u\n"
+        "   OutTarget: %u\n"
+        "   POW2:      %u\n"
+        "   FP16:      %u\n"
+        "   InFP16:    %u\n"
+        "   OutFP16:   %u\n"
+        "   Norm:      %u\n",
+        params.workgroup_size_x,
+        params.workgroup_size_y,
+        params.workgroup_size_z,
+        params.p1,
+        params.radix,
+        params.direction,
+        params.mode,
+        params.input_target,
+        params.output_target,
+        params.pow2_stride,
+        params.fft_fp16,
+        params.input_fp16,
+        params.output_fp16,
+        params.fft_normalize);
 #endif
 
     if (params.p1)
     {
         str += "#define FFT_P1\n";
+    }
+
+    if (params.pow2_stride)
+    {
+        str += "#define FFT_POW2_STRIDE\n";
     }
 
     if (params.fft_fp16)
@@ -800,80 +798,80 @@ unique_ptr<Program> FFT::build_program(const Parameters &params)
 
     str += params.direction == Forward ? "#define FFT_FORWARD\n" : "#define FFT_INVERSE\n";
     str += string("#define FFT_RADIX ") + to_string(params.radix) + "\n";
-    
+
     unsigned vector_size = params.vector_size;
     switch (params.mode)
     {
-        case VerticalDual:
-            str += "#define FFT_DUAL\n";
-            str += "#define FFT_VERT\n";
-            break;
+    case VerticalDual:
+        str += "#define FFT_DUAL\n";
+        str += "#define FFT_VERT\n";
+        break;
 
-        case Vertical:
-            str += "#define FFT_VERT\n";
-            break;
+    case Vertical:
+        str += "#define FFT_VERT\n";
+        break;
 
-        case HorizontalDual:
-            str += "#define FFT_DUAL\n";
-            str += "#define FFT_HORIZ\n";
-            break;
+    case HorizontalDual:
+        str += "#define FFT_DUAL\n";
+        str += "#define FFT_HORIZ\n";
+        break;
 
-        case Horizontal:
-            str += "#define FFT_HORIZ\n";
-            break;
+    case Horizontal:
+        str += "#define FFT_HORIZ\n";
+        break;
 
-        case ResolveRealToComplex:
-            str += "#define FFT_RESOLVE_REAL_TO_COMPLEX\n";
-            str += "#define FFT_HORIZ\n";
-            vector_size = 2;
-            break;
+    case ResolveRealToComplex:
+        str += "#define FFT_RESOLVE_REAL_TO_COMPLEX\n";
+        str += "#define FFT_HORIZ\n";
+        vector_size = 2;
+        break;
 
-        case ResolveComplexToReal:
-            str += "#define FFT_RESOLVE_COMPLEX_TO_REAL\n";
-            str += "#define FFT_HORIZ\n";
-            vector_size = 2;
-            break;
+    case ResolveComplexToReal:
+        str += "#define FFT_RESOLVE_COMPLEX_TO_REAL\n";
+        str += "#define FFT_HORIZ\n";
+        vector_size = 2;
+        break;
     }
 
     switch (params.input_target)
     {
-        case ImageReal:
-            str += "#define FFT_INPUT_REAL\n";
-            // Fallthrough
-        case Image:
-            str += "#define FFT_INPUT_TEXTURE\n";
-            break;
+    case ImageReal:
+        str += "#define FFT_INPUT_REAL\n";
+        // Fallthrough
+    case Image:
+        str += "#define FFT_INPUT_TEXTURE\n";
+        break;
 
-        default:
-            break;
+    default:
+        break;
     }
 
     switch (params.output_target)
     {
-        case ImageReal:
-            str += "#define FFT_OUTPUT_REAL\n";
-            // Fallthrough
-        case Image:
-            str += "#define FFT_OUTPUT_IMAGE\n";
-            break;
+    case ImageReal:
+        str += "#define FFT_OUTPUT_REAL\n";
+        // Fallthrough
+    case Image:
+        str += "#define FFT_OUTPUT_IMAGE\n";
+        break;
 
-        default:
-            break;
+    default:
+        break;
     }
 
     switch (vector_size)
     {
-        case 2:
-            str += "#define FFT_VEC2\n";
-            break;
+    case 2:
+        str += "#define FFT_VEC2\n";
+        break;
 
-        case 4:
-            str += "#define FFT_VEC4\n";
-            break;
+    case 4:
+        str += "#define FFT_VEC4\n";
+        break;
 
-        case 8:
-            str += "#define FFT_VEC8\n";
-            break;
+    case 8:
+        str += "#define FFT_VEC8\n";
+        break;
     }
 
     str += string("layout(local_size_x = ") +
@@ -885,58 +883,58 @@ unique_ptr<Program> FFT::build_program(const Parameters &params)
         ") in;\n";
 
 #ifdef GLFFT_SHADER_FROM_FILE
-    str += load_shader_string("glfft/glsl/fft_common.comp");
+    str += load_shader_string("fft_common.comp");
     switch (params.radix)
     {
-        case 4:
-            str += load_shader_string("glfft/glsl/fft_radix4.comp");
-            break;
+    case 4:
+        str += load_shader_string("fft_radix4.comp");
+        break;
 
-        case 8:
-            str += load_shader_string("glfft/glsl/fft_radix8.comp");
-            break;
+    case 8:
+        str += load_shader_string("fft_radix8.comp");
+        break;
 
-        case 16:
-            str += load_shader_string("glfft/glsl/fft_radix4.comp");
-            str += load_shader_string("glfft/glsl/fft_shared.comp");
-            str += load_shader_string("glfft/glsl/fft_radix16.comp");
-            break;
+    case 16:
+        str += load_shader_string("fft_radix4.comp");
+        str += load_shader_string("fft_shared.comp");
+        str += load_shader_string("fft_radix16.comp");
+        break;
 
-        case 64:
-            str += load_shader_string("glfft/glsl/fft_radix8.comp");
-            str += load_shader_string("glfft/glsl/fft_shared.comp");
-            str += load_shader_string("glfft/glsl/fft_radix64.comp");
-            break;
+    case 64:
+        str += load_shader_string("fft_radix8.comp");
+        str += load_shader_string("fft_shared.comp");
+        str += load_shader_string("fft_radix64.comp");
+        break;
     }
-    str += load_shader_string("glfft/glsl/fft_main.comp");
+    str += load_shader_string("fft_main.comp");
 #else
     str += Blob::fft_common_source;
     switch (params.radix)
     {
-        case 4:
-            str += Blob::fft_radix4_source;
-            break;
+    case 4:
+        str += Blob::fft_radix4_source;
+        break;
 
-        case 8:
-            str += Blob::fft_radix8_source;
-            break;
+    case 8:
+        str += Blob::fft_radix8_source;
+        break;
 
-        case 16:
-            str += Blob::fft_radix4_source;
-            str += Blob::fft_shared_source;
-            str += Blob::fft_radix16_source;
-            break;
+    case 16:
+        str += Blob::fft_radix4_source;
+        str += Blob::fft_shared_source;
+        str += Blob::fft_radix16_source;
+        break;
 
-        case 64:
-            str += Blob::fft_radix8_source;
-            str += Blob::fft_shared_source;
-            str += Blob::fft_radix64_source;
-            break;
+    case 64:
+        str += Blob::fft_radix8_source;
+        str += Blob::fft_shared_source;
+        str += Blob::fft_radix64_source;
+        break;
     }
     str += Blob::fft_main_source;
 #endif
 
-    auto prog = context->compile_compute_shader(str.c_str());
+    GLuint prog = compile_compute_shader(str.c_str());
     if (!prog)
     {
         puts(str.c_str());
@@ -945,63 +943,107 @@ unique_ptr<Program> FFT::build_program(const Parameters &params)
 #if 0
     char shader_path[1024];
     snprintf(shader_path, sizeof(shader_path), "glfft_shader_radix%u_first%u_mode%u_in_target%u_out_target%u.comp.src",
-            params.radix, params.p1, params.mode, unsigned(params.input_target), unsigned(params.output_target));
+        params.radix, params.p1, params.mode, unsigned(params.input_target), unsigned(params.output_target));
     store_shader_string(shader_path, str);
 #endif
 
     return prog;
 }
 
-double FFT::bench(Context *context, Resource *output, Resource *input,
-        unsigned warmup_iterations, unsigned iterations, unsigned dispatches_per_iteration, double max_time)
+GLuint FFT::compile_compute_shader(const char* src)
 {
-    context->wait_idle();
-    auto *cmd = context->request_command_buffer();
+    GLuint program = glCreateProgram();
+    opengl_check(program);
+    if (!program)
+    {
+        return 0;
+    }
+
+    GLuint shader = glCreateShader(GL_COMPUTE_SHADER);
+    opengl_check(shader);
+
+    const char* sources[] = { GLFFT_GLSL_LANG_STRING, src };
+    opengl_check(glShaderSource(shader, 2, sources, NULL));
+    opengl_check(glCompileShader(shader));
+
+    GLint status;
+    opengl_check(glGetShaderiv(shader, GL_COMPILE_STATUS, &status));
+    if (status == GL_FALSE)
+    {
+        GLint len;
+        GLsizei out_len;
+
+        opengl_check(glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &len));
+        vector<char> buf(len);
+        opengl_check(glGetShaderInfoLog(shader, len, &out_len, buf.data()));
+        glfft_log("GLFFT: Shader log:\n%s\n\n", buf.data());
+
+        opengl_check(glDeleteShader(shader));
+        opengl_check(glDeleteProgram(program));
+        return 0;
+    }
+
+    opengl_check(glAttachShader(program, shader));
+    opengl_check(glLinkProgram(program));
+    opengl_check(glDeleteShader(shader));
+
+    opengl_check(glGetProgramiv(program, GL_LINK_STATUS, &status));
+    if (status == GL_FALSE)
+    {
+        GLint len;
+        GLsizei out_len;
+        opengl_check(glGetProgramiv(program, GL_INFO_LOG_LENGTH, &len));
+        vector<char> buf(len);
+        opengl_check(glGetProgramInfoLog(program, len, &out_len, buf.data()));
+        glfft_log("Program log:\n%s\n\n", buf.data());
+
+        opengl_check(glDeleteProgram(program));
+        opengl_check(glDeleteShader(shader));
+        return 0;
+    }
+
+    return program;
+}
+
+double FFT::bench(GLuint output, GLuint input,
+    unsigned warmup_iterations, unsigned iterations, unsigned dispatches_per_iteration, double max_time)
+{
+    opengl_check(glFinish());
     for (unsigned i = 0; i < warmup_iterations; i++)
     {
-        process(cmd, output, input);
+        process(output, input);
     }
-    context->submit_command_buffer(cmd);
-    context->wait_idle();
+    opengl_check(glFinish());
 
     unsigned runs = 0;
-    double start_time = context->get_time();
+    double start_time = glfft_time();
     double total_time = 0.0;
 
-    for (unsigned i = 0; i < iterations && (((context->get_time() - start_time) < max_time) || i == 0); i++)
+    for (unsigned i = 0; i < iterations && (((glfft_time() - start_time) < max_time) || i == 0); i++)
     {
-#ifdef GLFFT_CLI_ASYNC
-        check_async_cancel();
-#endif
-
-        cmd = context->request_command_buffer();
-
-        double iteration_start = context->get_time();
+        double iteration_start = glfft_time();
         for (unsigned d = 0; d < dispatches_per_iteration; d++)
         {
-            process(cmd, output, input);
-            cmd->barrier();
+            process(output, input);
+            opengl_check(glMemoryBarrier(GL_ALL_BARRIER_BITS));
             runs++;
         }
-
-        context->submit_command_buffer(cmd);
-        context->wait_idle();
-
-        double iteration_end = context->get_time();
+        opengl_check(glFinish());
+        double iteration_end = glfft_time();
         total_time += iteration_end - iteration_start;
     }
 
     return total_time / runs;
 }
 
-void FFT::process(CommandBuffer *cmd, Resource *output, Resource *input, Resource *input_aux)
+void FFT::process(GLuint output, GLuint input, GLuint input_aux)
 {
     if (passes.empty())
     {
         return;
     }
 
-    Resource *buffers[2] = {
+    GLuint buffers[2] = {
         input,
         passes.size() & 1 ?
             (passes.back().parameters.output_target != SSBO ? temp_buffer_image.get() : output) :
@@ -1012,41 +1054,32 @@ void FFT::process(CommandBuffer *cmd, Resource *output, Resource *input, Resourc
     {
         if (passes.front().parameters.input_target != SSBO)
         {
-            cmd->bind_texture(BindingTexture1, static_cast<Texture*>(input_aux));
-            cmd->bind_sampler(BindingTexture1, texture.samplers[1]);
+            opengl_check(glActiveTexture(GL_TEXTURE1));
+            opengl_check(glBindTexture(GL_TEXTURE_2D, input_aux));
+            opengl_check(glBindSampler(1, texture.samplers[1]));
         }
         else
         {
             if (ssbo.input_aux.size != 0)
             {
-                cmd->bind_storage_buffer_range(BindingSSBOAux,
-                        ssbo.input_aux.offset, ssbo.input_aux.size, static_cast<Buffer*>(input_aux));
+                opengl_check(glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, input_aux,
+                    ssbo.input_aux.offset, ssbo.input_aux.size));
             }
             else
             {
-                cmd->bind_storage_buffer(BindingSSBOAux, static_cast<Buffer*>(input_aux));
+                opengl_check(glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, input_aux));
             }
         }
     }
 
-    Program *current_program = nullptr;
+    GLuint current_program = 0;
     unsigned p = 1;
     unsigned pass_index = 0;
-
-    struct FFTConstantData
-    {
-        uint32_t p;
-        uint32_t stride;
-        uint32_t padding[2];
-        float offset_x, offset_y;
-        float scale_x, scale_y;
-    };
-
-    for (auto &pass : passes)
+    for (auto& pass : passes)
     {
         if (pass.program != current_program)
         {
-            cmd->bind_program(pass.program);
+            opengl_check(glUseProgram(pass.program));
             current_program = pass.program;
         }
 
@@ -1054,94 +1087,92 @@ void FFT::process(CommandBuffer *cmd, Resource *output, Resource *input, Resourc
         {
             p = 1;
         }
+        else
+        {
+            glUniform1ui(0, p);
+        }
 
-        FFTConstantData constant_data;
-        constant_data.p = p;
-        constant_data.stride = pass.stride;
         p *= pass.parameters.radix;
 
         if (pass.parameters.input_target != SSBO)
         {
-            cmd->bind_texture(BindingTexture0, static_cast<Texture*>(buffers[0]));
-            cmd->bind_sampler(BindingTexture0, texture.samplers[0]);
+            opengl_check(glActiveTexture(GL_TEXTURE0));
+            opengl_check(glBindTexture(GL_TEXTURE_2D, buffers[0]));
+            opengl_check(glBindSampler(0, texture.samplers[0]));
 
             // If one compute thread reads multiple texels in X dimension, scale this accordingly.
             float scale_x = texture.scale_x * pass.uv_scale_x;
-
-            constant_data.offset_x = texture.offset_x;
-            constant_data.offset_y = texture.offset_y;
-            constant_data.scale_x = scale_x;
-            constant_data.scale_y = texture.scale_y;
+            opengl_check(glUniform2f(1, texture.offset_x, texture.offset_y));
+            opengl_check(glUniform2f(2, scale_x, texture.scale_y));
         }
         else
         {
             if (buffers[0] == input && ssbo.input.size != 0)
             {
-                cmd->bind_storage_buffer_range(BindingSSBOIn,
-                        ssbo.input.offset, ssbo.input.size, static_cast<Buffer*>(buffers[0]));
+                opengl_check(glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 0, buffers[0],
+                    ssbo.input.offset, ssbo.input.size));
             }
             else if (buffers[0] == output && ssbo.output.size != 0)
             {
-                cmd->bind_storage_buffer_range(BindingSSBOIn,
-                        ssbo.output.offset, ssbo.output.size, static_cast<Buffer*>(buffers[0]));
+                // This can behave weirdly if output is an image and our temp buffers GLuint aliases with
+                // the output texture name, but we shouldn't set ssbo.output.size in this case anyways.
+                opengl_check(glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 0, buffers[0],
+                    ssbo.output.offset, ssbo.output.size));
             }
             else
             {
-                cmd->bind_storage_buffer(BindingSSBOIn, static_cast<Buffer*>(buffers[0]));
+                opengl_check(glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, buffers[0]));
             }
         }
 
         if (pass.parameters.output_target != SSBO)
         {
-            Format format = FormatUnknown;
+            GLenum format = 0;
 
             // TODO: Make this more flexible, would require shader variants per-format though.
             if (pass.parameters.output_target == ImageReal)
             {
-                format = FormatR32Float;
+                format = GL_R32F;
             }
             else
             {
                 switch (pass.parameters.mode)
                 {
-                    case VerticalDual:
-                    case HorizontalDual:
-                        format = FormatR16G16B16A16Float;
-                        break;
+                case VerticalDual:
+                case HorizontalDual:
+                    format = GL_RGBA16F;
+                    break;
 
-                    case Vertical:
-                    case Horizontal:
-                    case ResolveRealToComplex:
-                        format = FormatR32Uint;
-                        break;
+                case Vertical:
+                case Horizontal:
+                case ResolveRealToComplex:
+                    format = GL_R32UI;
+                    break;
 
-                    default:
-                        break;
+                default:
+                    break;
                 }
             }
-            cmd->bind_storage_texture(BindingImage, static_cast<Texture*>(output), format);
+            opengl_check(glBindImageTexture(0, output, 0, GL_FALSE, 0, GL_WRITE_ONLY, format));
         }
         else
         {
             if (buffers[1] == output && ssbo.output.size != 0)
             {
-                cmd->bind_storage_buffer_range(BindingSSBOOut,
-                        ssbo.output.offset, ssbo.output.size, static_cast<Buffer*>(buffers[1]));
+                opengl_check(glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 1, buffers[1],
+                    ssbo.output.offset, ssbo.output.size));
             }
             else
             {
-                cmd->bind_storage_buffer(BindingSSBOOut, static_cast<Buffer*>(buffers[1]));
+                opengl_check(glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, buffers[1]));
             }
         }
 
-        cmd->push_constant_data(BindingUBO, &constant_data, sizeof(constant_data));
-        cmd->dispatch(pass.workgroups_x, pass.workgroups_y, 1);
+        opengl_check(glDispatchCompute(pass.workgroups_x, pass.workgroups_y, 1));
 
-        // For last pass, we don't know how our resource will be used afterwards,
-        // so let barrier decisions be up to the API user.
-        if (pass_index + 1 < passes.size())
+        if (pass.barriers != 0)
         {
-            cmd->barrier(static_cast<Buffer*>(buffers[1]));
+            opengl_check(glMemoryBarrier(pass.barriers));
         }
 
         if (pass_index == 0)
@@ -1155,4 +1186,3 @@ void FFT::process(CommandBuffer *cmd, Resource *output, Resource *input, Resourc
         pass_index++;
     }
 }
-
