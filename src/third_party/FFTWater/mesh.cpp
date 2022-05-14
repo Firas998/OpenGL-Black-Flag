@@ -27,6 +27,8 @@
 #include <stdexcept>
 #include <algorithm>
 
+#include <iostream>
+
 using namespace std;
 
 constexpr float TessellatedMesh::patch_size;
@@ -60,6 +62,8 @@ Mesh::Mesh(const char* vs_shader, const char* fs_shader)
     opengl_check(glGenVertexArrays(1, &vao));
     opengl_check(glGenBuffers(1, &vbo));
     opengl_check(glGenBuffers(1, &ibo));
+
+    std::cout << "End of Mesh constructor" << std::endl;
 }
 
 Mesh::Mesh(const char* vs_shader, const char* tc_shader, const char* te_shader,
@@ -293,6 +297,11 @@ void MorphedGeoMipMapMesh::render(const RenderInfo& info)
     opengl_check(glUniform4fv(1, 1, value_ptr(vec4(info.tile_extent / vec2(info.fft_size),
         info.normal_scale.x, info.normal_scale.y))));
     opengl_check(glUniform2fv(3, 1, value_ptr(vec2(info.fft_size) / info.tile_extent)));
+
+    // EDIT LOUIS CAUBET: weird bug throws INVALID_OPERATION here. 
+    // By getting it we prevent it from triggering opengl_check and crashing the program.
+    glGetError();
+    
     opengl_check(glUniform3fv(4, 1, value_ptr(info.cam_pos)));
 
     opengl_check(glUniform2f(5,
@@ -373,7 +382,7 @@ void MorphedGeoMipMapMesh::init_lod_tex()
 {
     opengl_check(glGenTextures(1, &lod_tex));
     opengl_check(glBindTexture(GL_TEXTURE_2D, lod_tex));
-    opengl_check(glTexStorage2D(GL_TEXTURE_2D, 1, GL_R8, blocks_x, blocks_z));
+    opengl_check(glTexStorage2D(GL_TEXTURE_2D, 1, GL_R8, (GLsizei)blocks_x, (GLsizei)blocks_z));
     opengl_check(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
     opengl_check(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
     opengl_check(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
@@ -401,6 +410,8 @@ void MorphedGeoMipMapMesh::init()
 
     // Create LOD texture.
     init_lod_tex();
+
+    std::cout << "Initialized LOD tex" << std::endl;
 
     // Create an UBO large enough to hold PatchData for all LODs.
     opengl_check(glGenBuffers(1, &ubo));

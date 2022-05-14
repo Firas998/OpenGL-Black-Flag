@@ -41,6 +41,7 @@ struct scene_structure {
 
 	// Timer used for the animation
 	cgp::timer_interval timer;
+	float total_time;
 
 
 	// ****************************** //

@@ -270,6 +270,7 @@ GLuint common_compile_shader_from_file(const char* vs_source, const char* fs_sou
     GLuint prog = common_compile_shader(vs_buf, fs_buf);
     free(vs_buf);
     free(fs_buf);
+    printf("\n");
     return prog;
 }
 

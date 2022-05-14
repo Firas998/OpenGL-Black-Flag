@@ -23,6 +23,7 @@
 #include <fstream>
 #include <sstream>
 #include <assert.h>
+#include <iostream>
 
 #define GLFFT_SHADER_FROM_FILE
 
@@ -345,7 +346,7 @@ GLuint FFT::get_program(const Parameters& params)
         prog = build_program(params);
         if (!prog)
         {
-            throw runtime_error("Failed to compile shader.\n");
+            throw runtime_error("failed to compile shader.\n");
         }
         cache->insert_program(params, prog);
     }
@@ -705,12 +706,13 @@ string FFT::load_shader_string(const char* path)
     free(buf);
     return ret;*/
 
-    ifstream file(path);
+    std::string realpath = "shaders/water/" + std::string(path);
+    std::ifstream file(realpath.c_str());
     if (!file.good())
     {
         throw runtime_error("Failed to load shader file from disk.\n");
     }
-    stringstream buf;
+    std::stringstream buf;
     buf << file.rdbuf();
     return buf.str();
 }
@@ -723,6 +725,8 @@ void FFT::store_shader_string(const char* path, const string& source)
 
 GLuint FFT::build_program(const Parameters& params)
 {
+
+    std::cout << "Building program" << std::endl;
     string str;
     str.reserve(16 * 1024);
 
@@ -934,10 +938,14 @@ GLuint FFT::build_program(const Parameters& params)
     str += Blob::fft_main_source;
 #endif
 
+    std::cout << "Complete writing. Compiling compute shader..." << std::endl;
+
     GLuint prog = compile_compute_shader(str.c_str());
     if (!prog)
     {
         puts(str.c_str());
+        std::cout << "Failed to compile compute shader" << std::endl;
+        exit(-1);
     }
 
 #if 0
@@ -947,6 +955,7 @@ GLuint FFT::build_program(const Parameters& params)
     store_shader_string(shader_path, str);
 #endif
 
+    std::cout << "Compute shader compiled." << std::endl;
     return prog;
 }
 

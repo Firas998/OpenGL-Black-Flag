@@ -47,6 +47,8 @@ int main(int, char* argv[])
 	// Standard Initialization with dimension in pixels
 	GLFWwindow* window = standard_window_initialization(); 
 	
+	
+	
 	glfwSetWindowTitle(window, "INF443: Black Flag - Louis Caubet & Firas Ben Jedidia");
 	
 	// Set Window Icon
@@ -130,7 +132,8 @@ void keyboard_callback(GLFWwindow* /*window*/, int key, int , int action, int /*
 GLFWwindow* standard_window_initialization(int width_target, int height_target)
 {
 	// Create the window using GLFW
-	GLFWwindow* window = cgp::create_window(width_target, height_target);
+	// Forcing OpenGL version 4.6 or higher
+	GLFWwindow* window = cgp::create_window(1920, 1080, "INF443: Black Flag - Louis Caubet & Firas Ben Jedidia", 4, 6);
 
 	// Update storage for window size for the scene
 	int width = 0, height = 0;

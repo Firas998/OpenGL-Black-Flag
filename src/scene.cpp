@@ -1,4 +1,5 @@
 #include "scene.hpp"
+#include "ocean.hpp"
 
 using namespace cgp;
 
@@ -16,12 +17,19 @@ void scene_structure::initialize()
 	ship.create_ship();
 
 	fps_record.start();
+	total_time = 0;
+
+	Ocean::app_init();
 
 }
 
 
 
 void scene_structure::display() {
+
+	total_time += timer.t / 10;
+	Ocean::app_render(1920, 1080, total_time, 0);
+	Ocean::app_update(timer.t / 10, environment);
 
 	environment.camera.center_of_rotation = { 8, 1.5f, 8 };
 
@@ -36,7 +44,7 @@ void scene_structure::display() {
 		environment.camera.distance_to_center = gui.zoomLevel;
 	}
 		
-	cubemap.drawCubemap(environment);
+	// cubemap.drawCubemap(environment);
 
 
 	// Update the current time
@@ -48,6 +56,8 @@ void scene_structure::display() {
 	rotation_transform rotation = rotation_transform::from_axis_angle({ 0,1,0 }, 0);
 	vec3 translation = { 0,0,0 };
 	ship.display_ship(environment, rotation, translation);
+
+	
 
 }
 

@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <string>
 #include <string.h>
+#include <iostream>
 
 /*
 EDIT LOUIS CAUBET
@@ -74,19 +75,17 @@ inline bool common_has_extension(const char* ext)
 
     /*
     EDIT LOUIS CAUBET
-    Removed use of GL_CHECK and LOGI (unsupported)
+    Rewrote GL extension test as the original one is not working in OpenGL 4
     */
 
-    bool ret = strstr((const char*)glGetString(GL_EXTENSIONS), ext) != nullptr;
-    if (ret)
-    {
-        printf("Extension %s is supported.\n", ext);
+    GLint n, i;
+    glGetIntegerv(GL_NUM_EXTENSIONS, &n);
+    for (i = 0; i < n; i++) {
+        if ((const char*)glGetStringi(GL_EXTENSIONS, i) == ext) return true;
+        // printf("%s\n", glGetStringi(GL_EXTENSIONS, i));
     }
-    else
-    {
-        printf("Extension %s is unsupported.\n", ext);
-    }
-    return ret;
+    return false;
+
 }
 
 #endif

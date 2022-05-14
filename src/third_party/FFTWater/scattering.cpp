@@ -60,8 +60,8 @@ void Scattering::generate(unsigned size, vec3 sun_dir)
     int steps = 100;
     opengl_check(glUniform1i(1, steps));
 
-    float start = 6500000.0f;
-    float end = 7000000.0f;
+    float start = 10000000.0f;
+    float end = 15000000.0f;
     opengl_check(glUniform1f(2, start));
     opengl_check(glUniform1f(3, (end - start) / steps));
 
