@@ -454,8 +454,8 @@ const FFTOptions::Performance& FFTWisdom::find_optimal_options_or_default(unsign
 #if 1
     if (itr == end(library))
     {
-        glfft_log("Didn't find options for (%u x %u, radix %u, mode %u, input_target %u, output_target %u)\n",
-            Nx, Ny, radix, unsigned(mode), unsigned(input_target), unsigned(output_target));
+        // glfft_log("Didn't find options for (%u x %u, radix %u, mode %u, input_target %u, output_target %u)\n",
+        //     Nx, Ny, radix, unsigned(mode), unsigned(input_target), unsigned(output_target));
     }
 #endif
 
