@@ -15,7 +15,7 @@ void scene_structure::initialize()
 	//cubemap.initialize();
 
 	//ship.create_ship();
-	GLuint const shader = opengl_load_shader("shaders/smokeparticle/vert.glsl", "shaders/smokeparticle/frag.glsl");
+	GLuint const shader = opengl_load_shader("shaders/vert.glsl", "shaders/frag.glsl");
 
 	Particles = new ParticleGenerator(shader,  500);
 
