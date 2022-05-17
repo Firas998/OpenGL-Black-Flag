@@ -3,6 +3,7 @@
 #include "cgp/cgp.hpp"
 #include "ship/ship.hpp"
 #include "cubemap.hpp"
+#include "Smokeparticle.hpp"
 
 
 // The element of the GUI that are not already stored in other structures
@@ -31,6 +32,8 @@ struct scene_structure {
 
 	ship ship;
 	Cubemap cubemap;
+
+	ParticleGenerator* Particles;
 	
 	/*cgp::mesh_drawable terrain;
 	cgp::mesh_drawable tree;
