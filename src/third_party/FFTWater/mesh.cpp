@@ -62,8 +62,6 @@ Mesh::Mesh(const char* vs_shader, const char* fs_shader)
     opengl_check(glGenVertexArrays(1, &vao));
     opengl_check(glGenBuffers(1, &vbo));
     opengl_check(glGenBuffers(1, &ibo));
-
-    std::cout << "End of Mesh constructor" << std::endl;
 }
 
 Mesh::Mesh(const char* vs_shader, const char* tc_shader, const char* te_shader,
@@ -410,8 +408,6 @@ void MorphedGeoMipMapMesh::init()
 
     // Create LOD texture.
     init_lod_tex();
-
-    std::cout << "Initialized LOD tex" << std::endl;
 
     // Create an UBO large enough to hold PatchData for all LODs.
     opengl_check(glGenBuffers(1, &ubo));

@@ -253,7 +253,7 @@ bool common_read_file_string(const char* path, char** out_buf)
 
 GLuint common_compile_shader_from_file(const char* vs_source, const char* fs_source)
 {
-    printf("Compiling vertex/fragment shader: %s, %s.", vs_source, fs_source);
+    // printf("Compiling vertex/fragment shader: %s, %s.", vs_source, fs_source);
     char* vs_buf = NULL;
     char* fs_buf = NULL;
     if (!common_read_file_string(vs_source, &vs_buf))
@@ -270,7 +270,7 @@ GLuint common_compile_shader_from_file(const char* vs_source, const char* fs_sou
     GLuint prog = common_compile_shader(vs_buf, fs_buf);
     free(vs_buf);
     free(fs_buf);
-    printf("\n");
+    // printf("\n");
     return prog;
 }
 
@@ -278,12 +278,12 @@ GLuint common_compile_shader_from_file(const char* vs_source,
     const char* tc_source, const char* te_source, const char* geom_source,
     const char* fs_source)
 {
-    printf("Compiling shader: %s, %s, %s, %s, %s.",
+    /*printf("Compiling shader: %s, %s, %s, %s, %s.",
         vs_source,
         tc_source ? tc_source : "none",
         te_source ? te_source : "none",
         geom_source ? geom_source : "none",
-        fs_source);
+        fs_source);*/
 
     GLuint prog = 0;
     char* vs_buf = NULL;
@@ -330,7 +330,7 @@ end:
 
 GLuint common_compile_compute_shader_from_file(const char* cs_source)
 {
-    printf("Compiling compute shader from %s.", cs_source);
+    // printf("Compiling compute shader from %s.", cs_source);
     char* cs_buf = NULL;
     if (!common_read_file_string(cs_source, &cs_buf))
     {
@@ -364,6 +364,6 @@ FILE* common_fopen(const char* path, const char* mode)
 {
     string join_path = common_get_path(path);
     FILE* ret = fopen(join_path.c_str(), mode);
-    printf("Opening: %s (%s).", join_path.c_str(), ret ? "success" : "failure");
+    // printf("Opening: %s (%s).", join_path.c_str(), ret ? "success" : "failure");
     return ret;
 }
