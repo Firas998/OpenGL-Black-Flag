@@ -18,10 +18,10 @@ void main()
 	float scale = 10.0f;
 	TexCoords = 0.2f*vertex.zw+textureindex;
 	ParticleColor = color;
-	vec3 CameraRight_worldspace = {view[0][0], view[1][0], view[2][0]}
-	vec3 CameraUp_worldspace = {view[0][1], view[1][1], view[2][1]}
+	vec3 CameraRight_worldspace = {view[0][0], view[1][0], view[2][0]};
+	vec3 CameraUp_worldspace = {view[0][1], view[1][1], view[2][1]};
 	vec3 vertexPosition_worldspace = offset
-	+ CameraRight_worldspace * squareVertices.x * scale
-    + CameraUp_worldspace * squareVertices.y * scale
-	gl_Position = projection * vec4(vertexPosition_worldspace,1.0f)
+	+ CameraRight_worldspace * vertex.x * scale
+    + CameraUp_worldspace * vertex.y * scale
+	gl_Position = projection * vec4(vertexPosition_worldspace,1.0f);
 }
