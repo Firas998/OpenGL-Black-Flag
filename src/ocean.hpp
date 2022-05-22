@@ -4,8 +4,9 @@
 
 typedef cgp::scene_environment_basic_camera_spherical_coords Environment;
 
-struct Ocean {
+class Ocean {
 
+public:
 	/// <summary>
 	/// Initialize the ocean. Call at scene initialization.
 	/// </summary>
@@ -25,11 +26,29 @@ struct Ocean {
 	/// <param name="height">Window height</param>
 	/// <param name="total_time">Total time since simulation start.</param>
 	/// <param name="environment">the CGP environment object</param>
-	/// <returns>The heightmap of the current state of the ocean.</returns>
-	float* render(unsigned width, unsigned height, float total_time, Environment environment);
+	void render(unsigned width, unsigned height, float total_time, Environment environment);
 
 	/// <summary>
 	/// Cleanup
 	/// </summary>
 	void term();
+
+	// Getters
+	int getHeightmapWidth() {
+		return heightmapWidth;
+	}
+	int getHeightmapHeight() {
+		return heightmapHeight;
+	}
+	float getHeight(int x, int y) {
+		int i = 128 - y;
+		int j = 128 - x;
+		return heightmap[heightmapWidth * i + j];
+	}
+
+private:
+	int heightmapWidth;
+	int heightmapHeight;
+	float* heightmap;
+
 };

@@ -186,7 +186,7 @@ void Ocean::update(float delta_time, Environment environment)
     cam_dir = vec3(cam_dir_cgp.y * factor, cam_dir_cgp.z* factor, cam_dir_cgp.x * factor);
 }
 
-float* Ocean::render(unsigned width, unsigned height, float total_time, Environment environment)
+void Ocean::render(unsigned width, unsigned height, float total_time, Environment environment)
 {
 
     unsigned mesh_index = 0;
@@ -245,10 +245,14 @@ float* Ocean::render(unsigned width, unsigned height, float total_time, Environm
     int w, h;
     opengl_check(glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w));
     opengl_check(glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h));
-    // std::cout << "Width, height: " << w << ", " << h << std::endl;
     float* data = new float[w * h];
     opengl_check(glGetTexImage(GL_TEXTURE_2D, 0, GL_RED, GL_FLOAT, (void*)data));
-    return data;
+    
+    heightmapWidth = w;
+    heightmapHeight = h;
+
+    delete[] heightmap;
+    heightmap = data;
 
 }
 

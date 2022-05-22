@@ -29,8 +29,10 @@ struct scene_structure {
 
 	gui_parameters gui;                       // Standard GUI element storage
 
-	struct Ocean ocean;
+	Ocean ocean;
 	ship ship;
+	cgp::mesh_drawable debug;
+	cgp::mesh_drawable debug2;
 	
 	/*cgp::mesh_drawable terrain;
 	cgp::mesh_drawable tree;
