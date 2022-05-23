@@ -1,4 +1,4 @@
-# INF443 project: Black Pearl at sea
+# INF443 project: Black Flag
 
 Louis Caubet & Firas Ben Jedidia
 
