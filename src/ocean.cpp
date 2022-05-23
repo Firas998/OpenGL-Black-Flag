@@ -149,7 +149,7 @@ static void init_vao()
     opengl_check(glBindVertexArray(0));
 }
 
-void Ocean::app_init()
+void Ocean::init()
 {
 
     common_set_basedir("shaders/water");
@@ -160,8 +160,6 @@ void Ocean::app_init()
     {
         mesh[1] = new TessellatedMesh;
     }
-
-    std::cout << "MorphedGeoMipMapMesh done." << std::endl;
 
     water = new FFTWater(AMPLITUDE, vec2(WIND_SPEED_X, WIND_SPEED_Z), uvec2(SIZE_X, SIZE_Z), vec2(DIST_X, DIST_Z), vec2(NORMALMAP_FREQ_MOD));
     prog_quad = common_compile_shader_from_file("quad.vs", "quad.fs");
@@ -176,11 +174,11 @@ void Ocean::app_init()
 }
 
 // Move the camera while looking at the sun for a nice scene.
-void Ocean::app_update(float delta_time, cgp::scene_environment_basic_camera_spherical_coords environment)
+void Ocean::update(float delta_time, Environment environment)
 {
     vec3 base_cam_dir = vec3(0.0f, 0.0f, -1.0f);
 
-    const float factor = 8.0f;
+    const float factor = 9.0f;
 
     cgp::vec3 cam_pos_cgp = environment.camera.position();
     cam_pos = vec3(cam_pos_cgp.y* factor, cam_pos_cgp.z* factor, cam_pos_cgp.x * factor);
@@ -188,8 +186,11 @@ void Ocean::app_update(float delta_time, cgp::scene_environment_basic_camera_sph
     cam_dir = vec3(cam_dir_cgp.y * factor, cam_dir_cgp.z* factor, cam_dir_cgp.x * factor);
 }
 
-void Ocean::app_render(unsigned width, unsigned height, float total_time, unsigned mesh_index)
+void Ocean::render(unsigned width, unsigned height, float total_time, Environment environment)
 {
+
+    unsigned mesh_index = 0;
+
     // Update the water textures with FFT.
     water->update(total_time);
 
@@ -205,6 +206,7 @@ void Ocean::app_render(unsigned width, unsigned height, float total_time, unsign
     opengl_check(glEnable(GL_DEPTH_TEST));
     opengl_check(glDepthFunc(GL_LEQUAL));
     opengl_check(glEnable(GL_CULL_FACE));
+    opengl_check(glDisable(GL_BLEND));
 
     // Render water
     Mesh::RenderInfo info;
@@ -237,9 +239,24 @@ void Ocean::app_render(unsigned width, unsigned height, float total_time, unsign
     glUseProgram(0);
     glDisable(GL_CULL_FACE);
 
+    // Retrieve heightmap data
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, water->get_height_displacement());
+    int w, h;
+    opengl_check(glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w));
+    opengl_check(glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h));
+    float* data = new float[w * h];
+    opengl_check(glGetTexImage(GL_TEXTURE_2D, 0, GL_RED, GL_FLOAT, (void*)data));
+    
+    heightmapWidth = w;
+    heightmapHeight = h;
+
+    delete[] heightmap;
+    heightmap = data;
+
 }
 
-void Ocean::app_term()
+void Ocean::term()
 {
     opengl_check(glDeleteBuffers(1, &vbo_quad));
     opengl_check(glDeleteVertexArrays(1, &vao_quad));

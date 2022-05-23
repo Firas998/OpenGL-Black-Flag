@@ -97,6 +97,9 @@ void ShipLoader::convertMesh(aiMesh* m, const aiScene* scene) {
 
 void ShipLoader::drawMeshes(const aiScene* scene) {
 	for (int i = 0; i < scene->mNumMaterials; i++) {
+
+		if (rawMeshes[i].position.size() == 0) continue;
+
 		rawMeshes[i].fill_empty_field();
 		mesh_drawable mesh;
 		mesh.initialize(rawMeshes[i]);
@@ -127,7 +130,6 @@ void ShipLoader::processMaterials(const aiScene* scene) {
 		aiString texture;
 		scene->mMaterials[i]->GetTexture(aiTextureType_DIFFUSE, 0, &texture);
 		std::string textureName = texture.C_Str();
-		std::cout << "Texture name: " << textureName << std::endl;
 		if (textureName != "") {
 			textures.push_back(opengl_load_texture_image("assets/BlackPearl/" + textureName));
 		}

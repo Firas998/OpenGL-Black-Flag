@@ -48,11 +48,19 @@ void Scattering::generate(unsigned size, vec3 sun_dir)
 
     bool mipmap_fp16 = common_has_extension("GL_EXT_color_buffer_half_float");
 
+    // EDIT LOUIS CAUBET: override this
+    mipmap_fp16 = true;
+
     opengl_check(glGenTextures(1, &tex));
     opengl_check(glBindTexture(GL_TEXTURE_CUBE_MAP, tex));
     opengl_check(glTexStorage2D(GL_TEXTURE_CUBE_MAP, mipmap_fp16 ? int(log2(float(size))) + 1 : 1, GL_RGBA16F, size, size));
     opengl_check(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
     opengl_check(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, mipmap_fp16 ? GL_LINEAR_MIPMAP_NEAREST : GL_LINEAR));
+
+    // EDIT LOUIS CAUBET - add this to prevent seeing the borders of the skybox cube.
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
     opengl_check(glUseProgram(prog));
     opengl_check(glUniform3fv(0, 1, value_ptr(sun_dir)));
