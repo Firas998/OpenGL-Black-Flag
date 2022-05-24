@@ -35,7 +35,7 @@ void scene_structure::display() {
 
 	if (inputs.keyboard.up) {
 		speed += dt;
-		speed = std::min(speed, 20.0f);
+		speed = std::min(speed, 10.0f);
 	}
 	else {
 		speed -= dt;
@@ -90,7 +90,13 @@ void scene_structure::display() {
 	debug2.transform.translation = ship_front;
 
 	float pitch = std::atan((ship_front.z - ship_back.z) / 12);
-	float z = std::min(std::max(0.25f*(ship_back.z+ship_front.z) - 1, -1.5f), -1.0f);
+	// float z = std::min(std::max(0.25f*(ship_back.z+ship_front.z) - 1, -1.5f), -1.0f);
+	float z = -ocean.getHeight(
+		(relative_ship_front.x+relative_ship_back.x) / 2, 
+		(relative_ship_front.y+relative_ship_back.y) / 2
+	) / 10 - 1.0f;
+
+	z = std::min(std::max(z, -1.5f), -1.0f);
 	
 	rotation_transform rotation = rotation_transform::from_axis_angle({ 0,1,0 }, 0.5f * pitch)
 		* rotation_transform::from_axis_angle({ 0,0,1 }, angle);
