@@ -33,17 +33,13 @@ struct scene_structure {
 	ship ship;
 	cgp::mesh_drawable debug;
 	cgp::mesh_drawable debug2;
-	
-	/*cgp::mesh_drawable terrain;
-	cgp::mesh_drawable tree;
-	cgp::mesh_drawable quad_drawable;
 
-	std::vector<cgp::vec3> tree_position;
-	std::vector<cgp::vec3> billboard_position;*/
-
-	// Timer used for the animation
-	cgp::timer_interval timer;
+	cgp::timer_basic timer;
 	float total_time;
+
+	float speed = 0.0f;
+	float angle = 0.0f;
+	cgp::vec3 position = { 0,0,0 };
 
 
 	// ****************************** //
@@ -54,7 +50,6 @@ struct scene_structure {
 	void display();     // The frame display to be called within the animation loop
 	void display_gui(); // The display of the GUI, also called within the animation loop
 	void set_window_title(GLFWwindow* window);
-
 
 };
 

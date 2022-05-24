@@ -1,4 +1,5 @@
 #include "scene.hpp"
+#include <algorithm>
 
 using namespace cgp;
 
@@ -30,9 +31,28 @@ void scene_structure::initialize()
 
 void scene_structure::display() {
 
+	// Update the current time
+	float dt = timer.update();
+
+	if (inputs.keyboard.up) {
+		speed += timer.t;
+		speed = std::min(speed, 20.0f);
+	}
+	else {
+		speed -= timer.t;
+		speed = std::max(speed, 0.0f);
+	}
+
+	if (inputs.keyboard.right) {
+		angle += timer.t;
+	}
+	else if (inputs.keyboard.left) {
+		angle -= timer.t;
+	}
+
 	total_time += timer.t / 10;
-	ocean.render(1920, 1080, total_time, environment);
-	ocean.update(timer.t / 10, environment);
+	ocean.render(1920, 1080, timer.t, environment);
+	ocean.update(dt, environment);
 
 	environment.camera.center_of_rotation = { 4, 4, 5 };
 
@@ -47,8 +67,7 @@ void scene_structure::display() {
 		environment.camera.distance_to_center = gui.zoomLevel;
 	}
 
-	// Update the current time
-	timer.update();
+	
 
 	// Basic elements of the scene
 	environment.light = environment.camera.position();
@@ -90,5 +109,3 @@ void scene_structure::set_window_title(GLFWwindow* window) {
 	std::string title = "INF443: Black Flag - Louis Caubet & Firas Ben Jedidia - " + str(fps_record.fps) + " fps";
 	glfwSetWindowTitle(window, title.c_str());
 }
-
-
