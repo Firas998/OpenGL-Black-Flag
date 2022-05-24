@@ -35,7 +35,6 @@ struct scene_structure {
 	cgp::mesh_drawable debug2;
 
 	cgp::timer_basic timer;
-	float total_time;
 
 	float speed = 0.0f;
 	float angle = 0.0f;
