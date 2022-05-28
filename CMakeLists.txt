@@ -1,9 +1,9 @@
-﻿# CMakeList.txt : projet CMake pour 07-projet, incluez la source et définissez
+﻿# CMakeList.txt : projet CMake pour black_flag, incluez la source et définissez
 # la logique spécifique au projet ici.
 #
 cmake_minimum_required (VERSION 3.8)
 
-project ("07-projet")
+project ("black_flag")
 
 find_package(assimp CONFIG REQUIRED)
 find_package(glslang CONFIG REQUIRED)
@@ -11,7 +11,7 @@ find_package(RapidJSON CONFIG REQUIRED)
 
 # Relative path to the library
 # => Adapt this directory to your relative path if needed
-set(PATH_TO_LIBRARY "../../../library/CMakeLists.txt" CACHE PATH "Relative path to CGP library location") 
+set(PATH_TO_LIBRARY "../library/CMakeLists.txt" CACHE PATH "Relative path to CGP library location") 
 
 # Check that the path to the library is correct
 get_filename_component(ABS_PATH_TO_LIBRARY ${PATH_TO_LIBRARY} ABSOLUTE)

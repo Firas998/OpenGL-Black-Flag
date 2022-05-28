@@ -30,9 +30,8 @@ struct scene_structure {
 	gui_parameters gui;                       // Standard GUI element storage
 
 	Ocean ocean;
-	ship ship;
-	cgp::mesh_drawable debug;
-	cgp::mesh_drawable debug2;
+	Ship ship;
+	
 
 	cgp::timer_basic timer;
 
