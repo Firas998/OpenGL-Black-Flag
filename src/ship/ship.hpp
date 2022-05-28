@@ -11,10 +11,13 @@ public:
 	void create_ship();
 	void update_position(Environment env, cgp::vec3 base_position, float angle, Ocean ocean);
 	void display_ship(Environment env);
+	void sink();
 
 private:
 	ShipLoader loader;
 	cgp::vec3 position;
 	cgp::rotation_transform rotation;
+	cgp::timer_basic sinking_timer;
+	bool isSinking = false;
 };
 

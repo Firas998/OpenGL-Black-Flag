@@ -34,6 +34,19 @@ void Ship::update_position(Environment env, vec3 base_position, float angle, Oce
 
 	rotation = rotation_transform::from_axis_angle({ 0,1,0 }, 0.5f * pitch) * yaw;
 	position = position + vec3(0, 0, z);
+
+	if (isSinking) {
+		sinking_timer.update();
+		std::cout << sinking_timer.t << std::endl;
+		position = position + vec3(0, 0, -sinking_timer.t);
+	}
+}
+
+void Ship::sink() {
+	if (!isSinking) {
+		isSinking = true;
+		sinking_timer.start();
+	}
 }
 
 void Ship::display_ship(Environment env) {

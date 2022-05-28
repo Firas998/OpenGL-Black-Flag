@@ -7,7 +7,6 @@
 
 // The element of the GUI that are not already stored in other structures
 struct gui_parameters {
-	bool firstPersonCamera = false;
 	float zoomLevel = 50;
 	float defaultScroll = 0;
 };
@@ -30,7 +29,8 @@ struct scene_structure {
 	gui_parameters gui;                       // Standard GUI element storage
 
 	Ocean ocean;
-	Ship ship;
+	Ship player_ship;
+	Ship other_ship;
 	
 
 	cgp::timer_basic timer;
