@@ -9,7 +9,6 @@
 
 // The element of the GUI that are not already stored in other structures
 struct gui_parameters {
-	bool firstPersonCamera = false;
 	float zoomLevel = 50;
 	float defaultScroll = 0;
 };
@@ -44,7 +43,7 @@ struct scene_structure {
 	Ocean ocean;
 
 
-	cgp::timer_interval timer;
+	cgp::timer_basic timer;
 
 	float speed = 0.0f;
 	float angle = 0.0f;

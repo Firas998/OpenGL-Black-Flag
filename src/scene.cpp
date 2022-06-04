@@ -10,7 +10,7 @@ void scene_structure::initialize()
 
 	global_frame.initialize(mesh_primitive_frame(), "Frame");
 	environment.camera.axis = camera_spherical_coordinates_axis::z;
-	environment.camera.look_at({ 50.0f,0.0f,0.0f }, { 0,0,0 });
+	environment.camera.look_at({ -50.0f,0.0f,0.0f }, { 10,0,10 });
 
 	player_ship.create_ship();
 	other_ship.create_ship();
