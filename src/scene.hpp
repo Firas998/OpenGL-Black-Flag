@@ -3,20 +3,20 @@
 #include "cgp/cgp.hpp"
 #include "ship/ship.hpp"
 #include "Smokeparticle.hpp"
+#include "island.hpp"
+//#include "cannon.hpp"
 #include "ocean.hpp"
-
 
 // The element of the GUI that are not already stored in other structures
 struct gui_parameters {
+	bool firstPersonCamera = false;
 	float zoomLevel = 50;
 	float defaultScroll = 0;
 };
 
-
-
 // The structure of the custom scene
 struct scene_structure {
-	
+
 	// ****************************** //
 	// Elements and shapes of the scene
 	// ****************************** //
@@ -29,20 +29,28 @@ struct scene_structure {
 
 	gui_parameters gui;                       // Standard GUI element storage
 
-	Ocean ocean;
+	//cgp::mesh terrain_mesh;
+	//cgp::mesh_drawable terrain_drawable;
+	//perlin_noise_parameters parameters;
+	//island island;
+	//Cannonballs
+	//cannonballgenerator Cannons; 
+	//cgp::affine_rts ship_transform;
+	//ParticleGenerator* Particles;
 
-	ParticleGenerator* Particles;
-	cgp::mesh_drawable debug;
-	cgp::mesh_drawable debug2;
+
 	Ship player_ship;
 	Ship other_ship;
-	
+	Ocean ocean;
 
-	cgp::timer_basic timer;
+
+	cgp::timer_interval timer;
 
 	float speed = 0.0f;
 	float angle = 0.0f;
 	cgp::vec3 position = { 0,0,0 };
+
+
 
 
 	// ****************************** //
@@ -53,6 +61,7 @@ struct scene_structure {
 	void display();     // The frame display to be called within the animation loop
 	void display_gui(); // The display of the GUI, also called within the animation loop
 	void set_window_title(GLFWwindow* window);
+
 
 };
 

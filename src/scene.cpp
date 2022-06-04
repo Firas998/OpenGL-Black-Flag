@@ -10,30 +10,30 @@ void scene_structure::initialize()
 
 	global_frame.initialize(mesh_primitive_frame(), "Frame");
 	environment.camera.axis = camera_spherical_coordinates_axis::z;
-	environment.camera.look_at({ -50.0f,0.0f,0.0f }, { 10,0,10 });
+	environment.camera.look_at({ 50.0f,0.0f,0.0f }, { 0,0,0 });
 
-	GLuint const shader = opengl_load_shader("shaders/smokeparticle/vert.glsl", "shaders/smokeparticle/frag.glsl");
-
-	Particles = new ParticleGenerator(shader,  500);
 	player_ship.create_ship();
 	other_ship.create_ship();
 
+	GLuint const shader = opengl_load_shader("shaders/smokeparticle/vert.glsl", "shaders/smokeparticle/frag.glsl");
+	//Particles = new ParticleGenerator(shader, 50);
+
+
+	/*
+	terrain_mesh = island.create_terrain_mesh();
+	terrain_drawable.initialize(terrain_mesh, "terrain");
+	island.update_terrain(terrain_mesh, terrain_drawable, parameters);
+	*/
+
+
 	fps_record.start();
-
 	ocean.init();
-
 	other_ship.sink();
-
 }
 
 
 
 void scene_structure::display() {
-
-	total_time += timer.t / 10;
-
-	Particles->Update(0.1f,30);
-	Particles->Draw();
 
 	// Update the current time
 	float dt = timer.update();
@@ -48,10 +48,10 @@ void scene_structure::display() {
 	}
 
 	if (inputs.keyboard.right) {
-		angle -= 0.05*dt*speed;
+		angle -= 0.05 * dt * speed;
 	}
 	else if (inputs.keyboard.left) {
-		angle += 0.05*dt*speed;
+		angle += 0.05 * dt * speed;
 	}
 
 	position = {
@@ -71,7 +71,7 @@ void scene_structure::display() {
 	ocean.render(1920, 1080, timer.t, environment);
 	ocean.update(dt, environment);
 
-	
+
 	// Basic elements of the scene
 	environment.light = environment.camera.position();
 
@@ -80,12 +80,37 @@ void scene_structure::display() {
 
 	other_ship.update_position(environment, vec3(0, 50, 0), Pi, ocean);
 	other_ship.display_ship(environment);
+
+
+	//Particles->Update(0.01,30);
+	//Particles->Draw(environment);
+	//draw(terrain_drawable, environment);
+
+	//cannonballs
+	//float cannons_dt = 0.05;
+	//Cannons.drawballs(cannons_dt, environment, ship_transform);
+
+
+
 }
 
 
 void scene_structure::display_gui()
 {
-	
+	/*
+
+	bool update = false;
+	update |= ImGui::SliderFloat("Persistance", &parameters.persistency, 0.1f, 1.5f);
+	update |= ImGui::SliderFloat("Frequency gain", &parameters.frequency_gain, 1.5f, 2.5f);
+	update |= ImGui::SliderInt("Octave", &parameters.octave, 1, 8);
+	update |= ImGui::SliderFloat("Height", &parameters.terrain_height, 0.1f, 10.0f);
+	update |= ImGui::SliderFloat("Noise Scale", &parameters.noisescale, 0.0001f, 3.0f);
+
+	if (update)// if any slider has been changed - then update the terrain
+		island.update_terrain(terrain_mesh, terrain_drawable, parameters);
+
+	*/
+
 }
 
 void scene_structure::set_window_title(GLFWwindow* window) {
@@ -93,3 +118,5 @@ void scene_structure::set_window_title(GLFWwindow* window) {
 	std::string title = "INF443: Black Flag - Louis Caubet & Firas Ben Jedidia - " + str(fps_record.fps) + " fps";
 	glfwSetWindowTitle(window, title.c_str());
 }
+
+
