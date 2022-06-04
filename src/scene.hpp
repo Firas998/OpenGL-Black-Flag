@@ -8,7 +8,6 @@
 
 // The element of the GUI that are not already stored in other structures
 struct gui_parameters {
-	bool firstPersonCamera = false;
 	float zoomLevel = 50;
 	float defaultScroll = 0;
 };
@@ -31,22 +30,19 @@ struct scene_structure {
 	gui_parameters gui;                       // Standard GUI element storage
 
 	Ocean ocean;
-	ship ship;
 
 	ParticleGenerator* Particles;
 	cgp::mesh_drawable debug;
 	cgp::mesh_drawable debug2;
+	Ship player_ship;
+	Ship other_ship;
 	
-	/*cgp::mesh_drawable terrain;
-	cgp::mesh_drawable tree;
-	cgp::mesh_drawable quad_drawable;
 
-	std::vector<cgp::vec3> tree_position;
-	std::vector<cgp::vec3> billboard_position;*/
+	cgp::timer_basic timer;
 
-	// Timer used for the animation
-	cgp::timer_interval timer;
-	float total_time;
+	float speed = 0.0f;
+	float angle = 0.0f;
+	cgp::vec3 position = { 0,0,0 };
 
 
 	// ****************************** //
@@ -57,7 +53,6 @@ struct scene_structure {
 	void display();     // The frame display to be called within the animation loop
 	void display_gui(); // The display of the GUI, also called within the animation loop
 	void set_window_title(GLFWwindow* window);
-
 
 };
 

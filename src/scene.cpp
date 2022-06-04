@@ -1,4 +1,5 @@
 #include "scene.hpp"
+#include <algorithm>
 
 using namespace cgp;
 
@@ -11,21 +12,17 @@ void scene_structure::initialize()
 	environment.camera.axis = camera_spherical_coordinates_axis::z;
 	environment.camera.look_at({ -50.0f,0.0f,0.0f }, { 10,0,10 });
 
-	mesh cube = mesh_primitive_cube();
-	debug.initialize(cube);
-	debug.shading.color = { 1,0,0 };
-	debug2.initialize(cube);
-	debug2.shading.color = { 1,0,0 };
-
-	//ship.create_ship();
 	GLuint const shader = opengl_load_shader("shaders/smokeparticle/vert.glsl", "shaders/smokeparticle/frag.glsl");
 
 	Particles = new ParticleGenerator(shader,  500);
+	player_ship.create_ship();
+	other_ship.create_ship();
 
 	fps_record.start();
-	total_time = 0;
 
 	ocean.init();
+
+	other_ship.sink();
 
 }
 
@@ -38,58 +35,57 @@ void scene_structure::display() {
 	Particles->Update(0.1f,30);
 	Particles->Draw();
 
-	ocean.render(1920, 1080, total_time, environment);
-	ocean.update(timer.t / 10, environment);
+	// Update the current time
+	float dt = timer.update();
 
-	environment.camera.center_of_rotation = { 4, 4, 5 };
+	if (inputs.keyboard.up) {
+		speed += dt;
+		speed = std::min(speed, 10.0f);
+	}
+	else {
+		speed -= dt;
+		speed = std::max(speed, 0.0f);
+	}
+
+	if (inputs.keyboard.right) {
+		angle -= 0.05*dt*speed;
+	}
+	else if (inputs.keyboard.left) {
+		angle += 0.05*dt*speed;
+	}
+
+	position = {
+		position.x + dt * speed * std::cos(angle),
+		position.y + dt * speed * std::sin(angle),
+		position.z
+	};
+
+	environment.camera.center_of_rotation = position + vec3(4, 4, 5);
 
 	// Prevent camera from going underwater
 	if (environment.camera.theta < -0.1) environment.camera.theta = -0.1;
 	if (environment.camera.theta > Pi / 2) environment.camera.theta = Pi / 2;
 
-	if (gui.firstPersonCamera) {
-		environment.camera.distance_to_center = 3;
-	}
-	else {
-		environment.camera.distance_to_center = gui.zoomLevel;
-	}
+	environment.camera.distance_to_center = gui.zoomLevel;
 
-	// Update the current time
-	timer.update();
+	ocean.render(1920, 1080, timer.t, environment);
+	ocean.update(dt, environment);
 
+	
 	// Basic elements of the scene
 	environment.light = environment.camera.position();
 
-	vec3 ship_back = { 0, 5.5f, 0 };
-	vec3 ship_front = { 12, 5.5f, 0 };
-	vec3 cam_pos = environment.camera.position();
+	player_ship.update_position(environment, position, angle, ocean);
+	player_ship.display_ship(environment);
 
-	vec3 relative_ship_back = ship_back - cam_pos;
-	vec3 relative_ship_front = ship_front - cam_pos;
-	
-
-	ship_back.z = -ocean.getHeight(relative_ship_back.x, relative_ship_back.y) / 5;
-	ship_front.z = -ocean.getHeight(relative_ship_front.x, relative_ship_front.y) / 5;
-
-	debug.transform.translation = ship_back;
-	debug2.transform.translation = ship_front;
-
-	float angle = std::atan((ship_front.z - ship_back.z) / 12);
-	float z = std::min(std::max(0.25f*(ship_back.z+ship_front.z) - 1, -1.5f), -1.0f);
-	
-	rotation_transform rotation = rotation_transform::from_axis_angle({ 0,1,0 }, 0.5f*angle);
-	vec3 translation = { 0,0, z};
-	ship.display_ship(environment, rotation, translation);
-
-	draw(debug, environment);
-	draw(debug2, environment);
-
+	other_ship.update_position(environment, vec3(0, 50, 0), Pi, ocean);
+	other_ship.display_ship(environment);
 }
 
 
 void scene_structure::display_gui()
 {
-	ImGui::Checkbox("First Person View", &gui.firstPersonCamera);
+	
 }
 
 void scene_structure::set_window_title(GLFWwindow* window) {
@@ -97,5 +93,3 @@ void scene_structure::set_window_title(GLFWwindow* window) {
 	std::string title = "INF443: Black Flag - Louis Caubet & Firas Ben Jedidia - " + str(fps_record.fps) + " fps";
 	glfwSetWindowTitle(window, title.c_str());
 }
-
-
