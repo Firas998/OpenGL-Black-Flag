@@ -6,8 +6,8 @@ using namespace cgp;
 
 const cgp::vec3 cannonball::g = cgp::vec3(0, 0, -9.81f);
 
-cannonballgenerator::cannonballgenerator() {
-	cannon_drawable.initialize(mesh_primitive_sphere(0.1f), "sphere");
+void cannonballgenerator::initialize() {
+	cannon_drawable.initialize(mesh_primitive_sphere(0.25f), "sphere");
 	cannontimers = std::vector<float>({ 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,1.0f });
 	cannonpositions.push_back((vec3(23.264f, 4.6946f, -7.8289f) + vec3(23.264f, 4.6025f, -7.8289f)) / 2);
 	cannonpositions.push_back((vec3(20.218f, 4.45f, -7.1893f) + vec3(20.218f, 4.35865f, -7.1893f)) / 2);
@@ -27,12 +27,12 @@ void cannonball::updateball(float dt) {
 
 	
 }
-void cannonballgenerator::drawballs(float dt, cgp::scene_environment_basic_camera_spherical_coords& environment,cgp::affine_rts &transformation) {
+void cannonballgenerator::drawballs(float dt, cgp::scene_environment_basic_camera_spherical_coords& environment,cgp::affine_rts &transformation,float angle) {
 	for (int i = 0; i < 9; i++) {
 		cannontimers[i] -= dt;
 		if (cannontimers[i] < 0) {
-			cannontimers[i] = 3 + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (7 - 3)));
-			cannonballs.push_back({ i,transformation });
+			cannontimers[i] = 3 + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (4 - 1)));
+			cannonballs.push_back({ cannonpositions[i],transformation,angle});
 		}
 	}
 	for (auto it = cannonballs.begin(); it != cannonballs.end(); ) {

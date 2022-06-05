@@ -5,26 +5,29 @@
 
 class cannonball {
 public:
-	int cannonposition;
+
 	const static cgp::vec3 g;
 	cgp::vec3 speed;
 	cgp::vec3 position;
 	cgp::affine_rts transform;
-	cannonball(int pos, cgp::affine_rts &transformation,cgp::vec3 speed=cgp::vec3(0,0,1)) : cannonposition{ pos },speed{speed},transform{transformation}
+	cannonball(cgp::vec3 theposition, cgp::affine_rts &transformation,float angle) : transform{transformation}
 	{
-		position = transform * position;
+		cgp::rotation_transform RTest = cgp::rotation_transform::from_axis_angle({0,0,1},angle);
+		speed = cgp::vec3(0 , -25, 5);
+		speed = RTest * speed;
+		position = transform * theposition;
 	};
 	void updateball(float dt);
 };
 
 class cannonballgenerator {
 public:
-	cannonballgenerator();
-	cgp::scene_environment_basic_camera_spherical_coords* environment;
+
 	std::vector<cannonball> cannonballs;
 	std::vector<cgp::vec3> cannonpositions;
 	std::vector<float> cannontimers;
 	cgp::mesh_drawable cannon_drawable;
-	void drawballs(float dt, cgp::scene_environment_basic_camera_spherical_coords& environment,cgp::affine_rts &transformation);
+	void initialize();
+	void drawballs(float dt, cgp::scene_environment_basic_camera_spherical_coords& environment, cgp::affine_rts& transformation, float angle);
 
 };

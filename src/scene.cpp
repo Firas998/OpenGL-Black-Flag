@@ -5,8 +5,13 @@ using namespace cgp;
 
 void scene_structure::initialize()
 {
+
+
 	// Basic set-up
 	// ***************************************** //
+
+	Cannons.initialize();
+	hahaha.initialize(cgp::mesh_primitive_sphere(), "alohamora");
 
 	global_frame.initialize(mesh_primitive_frame(), "Frame");
 	environment.camera.axis = camera_spherical_coordinates_axis::z;
@@ -15,7 +20,7 @@ void scene_structure::initialize()
 	player_ship.create_ship();
 	other_ship.create_ship();
 
-	GLuint const shader = opengl_load_shader("shaders/smokeparticle/vert.glsl", "shaders/smokeparticle/frag.glsl");
+	//GLuint const shader = opengl_load_shader("shaders/smokeparticle/vert.glsl", "shaders/smokeparticle/frag.glsl");
 	//Particles = new ParticleGenerator(shader, 50);
 
 
@@ -28,7 +33,7 @@ void scene_structure::initialize()
 
 	fps_record.start();
 	ocean.init();
-	other_ship.sink();
+	//other_ship.sink();
 }
 
 
@@ -76,10 +81,10 @@ void scene_structure::display() {
 	environment.light = environment.camera.position();
 
 	player_ship.update_position(environment, position, angle, ocean);
-	player_ship.display_ship(environment);
+	player_ship.display_ship(environment,ship1_transform);
 
 	other_ship.update_position(environment, vec3(0, 50, 0), Pi, ocean);
-	other_ship.display_ship(environment);
+	other_ship.display_ship(environment,ship2_transform);
 
 
 	//Particles->Update(0.01,30);
@@ -87,8 +92,10 @@ void scene_structure::display() {
 	//draw(terrain_drawable, environment);
 
 	//cannonballs
-	//float cannons_dt = 0.05;
-	//Cannons.drawballs(cannons_dt, environment, ship_transform);
+	float cannons_dt = 0.05;
+	Cannons.drawballs(cannons_dt, environment, ship1_transform,angle);
+
+	draw(hahaha, environment);
 
 
 
