@@ -9,13 +9,16 @@ void Ship::create_ship() {
 	loader.loadObj();
 }
 
-void Ship::update_position(Environment env, vec3 base_position, float angle, Ocean ocean) {
+void Ship::update_position(Environment env, vec3 base_position, float angle, Ocean &ocean) {
 	this->position = base_position;
 	auto yaw = rotation_transform::from_axis_angle({ 0,0,1 }, angle);
 
 	// Positions to compute pitch
 	vec3 ship_back = position + vec3(0, 5.5f, 0);
-	vec3 ship_front = position + yaw*vec3(12, 5.5f, 0);
+	vec3 ship_front = position + vec3(
+		std::cos(angle) * 12 + std::sin(angle) * 5.5f, 
+		std::sin(angle) * 12 + std::cos(angle) * 5.5f, 
+		0);
 
 	// Positions to compute roll
 	vec3 ship_left = position + vec3(6, 3.0f, 0);
@@ -34,7 +37,7 @@ void Ship::update_position(Environment env, vec3 base_position, float angle, Oce
 	ship_right.z = -ocean.getHeight(relative_ship_right.x, relative_ship_right.y) / 5;
 
 	float pitch = std::atan((ship_front.z - ship_back.z) / 12);
-	float roll = std::atan((ship_left.z - ship_right.z) / 6);
+	float roll = std::atan((ship_left.z - ship_right.z) / 4);
 
 	float z = -ocean.getHeight(
 		(relative_ship_front.x + relative_ship_back.x) / 2,
