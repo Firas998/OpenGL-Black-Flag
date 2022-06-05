@@ -2,13 +2,13 @@
 
 using namespace cgp;
 
-ParticleGenerator::ParticleGenerator(GLuint const shaderprogram , unsigned int amount)
-    : amount(amount),shaderprogram(shaderprogram)
+ParticleGenerator::ParticleGenerator(GLuint const shaderprogram, unsigned int amount)
+    : amount(30),shaderprogram(shaderprogram)
 {
     this->init();
 }
 
-void ParticleGenerator::Update(float dt, unsigned int newParticles, vec2 offset)
+void ParticleGenerator::Update(float dt, unsigned int newParticles, vec3 offset)
 {
     // add new particles 
     for (unsigned int i = 0; i < newParticles; ++i)
@@ -23,68 +23,46 @@ void ParticleGenerator::Update(float dt, unsigned int newParticles, vec2 offset)
         p.Life -= dt; // reduce life
         if (p.Life > 0.0f)
         {	// particle is alive, thus update
-            p.Position -= p.Velocity * dt;
+            p.Position += p.Velocity * dt;
             p.Color.w -= dt * 2.5f;
-            p.textureindex = (int)(p.Life / TotalDuration) * 25;
+            p.textureindex = (int)((p.Life / TotalDuration) * 25);
+            
         }
     }
 }
 
 // render all particles
-void ParticleGenerator::Draw()
+void ParticleGenerator::Draw(cgp::scene_environment_basic_camera_spherical_coords &environment)
 {
     // use additive blending to give it a 'glow' effect
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-    glUseProgram(shaderprogram);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDepthMask(false);
     for (Particle particle : this->particles)
     {
         if (particle.Life > 0.0f)
         {   
-            GLint offset_location = glGetUniformLocation(shaderprogram, "offset");
-            glUniform2f(offset_location, particle.Position.x, particle.Position.y);
-            GLint textureindex_location = glGetUniformLocation(shaderprogram, "textureindex");
-            glUniform2f(textureindex_location, particle.textureindex/5,particle.textureindex % 5);
-            GLint color_location = glGetUniformLocation(shaderprogram, "color");
-            glUniform4f(color_location, particle.Color.x, particle.Color.y, particle.Color.z, particle.Color.w);
-            glActiveTexture(GL_TEXTURE0); opengl_check;
-            glBindTexture(GL_TEXTURE_2D, texture_image_id); opengl_check;
-            opengl_uniform(shaderprogram, "image_texture", 0);  opengl_check;
-
-            glBindVertexArray(this->VAO);
-            glDrawArrays(GL_TRIANGLES, 0, 6);
-            glBindVertexArray(0);
-            glBindTexture(GL_TEXTURE_2D, 0);
+            drawable_quad.transform.translation = particle.Position;
+            drawable_quad.transform.rotation = rotation_transform::between_vector(cgp::vec3( 0,1,0 ), environment.camera.front());
+            cgp::vec3 index{ particle.textureindex / 5, particle.textureindex % 5,0.0f };
+            //GLint index_location = glGetUniformLocation(shaderprogram, "index");
+            drawable_quad.shading.phong.ambient = index.x;
+            drawable_quad.shading.phong.diffuse = index.y;
+            //cgp::opengl_uniform(shaderprogram, "couleur", particle.Color.x, particle.Color.y, particle.Color.z, particle.Color.w,false);
+            cgp::draw(drawable_quad, environment);
+            
         }
     }
     // don't forget to reset to default blending mode
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDepthMask(true);
+    glDisable(GL_BLEND);
 }
 
 void ParticleGenerator::init()
 {
-    // set up mesh and attribute properties
-    unsigned int VBO;
-    float particle_quad[] = {
-        0.0f, 1.0f, 0.0f, 1.0f,
-        1.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 0.0f,
-
-        0.0f, 1.0f, 0.0f, 1.0f,
-        1.0f, 1.0f, 1.0f, 1.0f,
-        1.0f, 0.0f, 1.0f, 0.0f
-    };
-    glGenVertexArrays(1, &this->VAO);
-    glGenBuffers(1, &VBO);
-    glBindVertexArray(this->VAO);
-    // fill mesh buffer
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(particle_quad), particle_quad, GL_STATIC_DRAW);
-    // set mesh attributes
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
-    glBindVertexArray(0);
-
-    // create this->amount default particle instances
+    drawable_quad.initialize(mesh_primitive_quadrangle({ -1, 0, -1 }, { 1,0,-1 }, { 1,0,1 }, { -1,0,1 }), "Particle_mesh");
+    drawable_quad.shader = shaderprogram;
+    drawable_quad.texture = texture_image_id;
     for (unsigned int i = 0; i < this->amount; ++i)
         this->particles.push_back(Particle());
 }
@@ -112,11 +90,11 @@ unsigned int ParticleGenerator::firstUnusedParticle()
     return 0;
 }
 
-void ParticleGenerator::respawnParticle(Particle& particle, vec2 offset)
+void ParticleGenerator::respawnParticle(Particle& particle, vec3 offset)
 {
     float random = ((rand() % 100) - 50) / 10.0f;
     float rColor = 0.5f + ((rand() % 100) / 100.0f);
-    particle.Position = random + offset;
+    particle.Position = vec3{ random,0,0 } + offset;
     particle.Color = vec4(rColor, rColor, rColor, 1.0f);
     particle.Life = 1.0f;
 }
