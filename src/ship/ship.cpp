@@ -38,7 +38,6 @@ void Ship::update_position(Environment env, vec3 base_position, float angle, Oce
 
 	if (isSinking) {
 		sinking_timer.update();
-		std::cout << sinking_timer.t << std::endl;
 		position = position + vec3(0, 0, -sinking_timer.t);
 	}
 }

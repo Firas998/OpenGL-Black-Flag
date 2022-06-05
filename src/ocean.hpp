@@ -41,8 +41,8 @@ public:
 		return heightmapHeight;
 	}
 	float getHeight(int x, int y) {
-		int i = 128 - y;
-		int j = 128 - x;
+		int i = std::min(std::max(128 - y, 0), heightmapHeight);
+		int j = std::min(std::max(128 - x, 0), heightmapWidth);
 		return heightmap[heightmapWidth * i + j];
 	}
 
