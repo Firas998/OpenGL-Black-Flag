@@ -6,6 +6,7 @@
 #include "island.hpp"
 #include "cannon.hpp"
 #include "ocean.hpp"
+#include <GLFW/glfw3.h>
 
 // The element of the GUI that are not already stored in other structures
 struct gui_parameters {
@@ -35,8 +36,9 @@ struct scene_structure {
 	// 
 	//Cannonballs
 	cannonballgenerator Cannons; 
-	//cgp::affine_rts ship_transform;
-	//ParticleGenerator* Particles;
+	bool left;
+	bool right;
+	ParticleGenerator* Particles;
 
 	mesh_drawable hahaha;
 	cgp::affine_rts ship1_transform;
@@ -63,6 +65,7 @@ struct scene_structure {
 	void display();     // The frame display to be called within the animation loop
 	void display_gui(); // The display of the GUI, also called within the animation loop
 	void set_window_title(GLFWwindow* window);
+	void update_from_key(int key,int action);
 
 
 };

@@ -127,6 +127,7 @@ void mouse_click_callback(GLFWwindow* /*window*/, int button, int action, int /*
 void keyboard_callback(GLFWwindow* /*window*/, int key, int , int action, int /*mods*/)
 {
 	scene.inputs.keyboard.update_from_glfw_key(key, action);
+	scene.update_from_key(key, action);
 }
 
 // Standard initialization procedure

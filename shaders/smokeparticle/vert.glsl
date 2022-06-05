@@ -1,28 +1,27 @@
 #version 330 core
 
-layout (location = 0) in vec4 vertex; // <vec2 position, vec2 texCoords>
+layout (location = 0) in vec3 position;  // vertex position in local space (x,y,z) 
+layout (location = 3) in vec2 uv;        // vertex uv-texture (u,v)
 
 out vec2 TexCoords;
 out vec4 ParticleColor;
 
 
-uniform mat4 projection;
-uniform vec2 offset;
-uniform vec4 color;
-uniform vec2 textureindex;
-uniform mat4 view;
 
+uniform vec3 textureindex;
+
+uniform mat4 view;
+uniform mat4 model;
+uniform mat4 projection;
 
 void main()
 {
 	float scale = 10.0f;
-	TexCoords = 0.2f*vertex.zw+textureindex;
-	ParticleColor = color;
-	vec3 CameraRight_worldspace = {view[0][0], view[1][0], view[2][0]};
-	vec3 CameraUp_worldspace = {view[0][1], view[1][1], view[2][1]};
-	vec3 offset3 = {offset.x, offset.y, 0};
-	vec3 vertexPosition_worldspace = offset3 
-		+ CameraRight_worldspace * vertex.x * scale
-		+ CameraUp_worldspace * vertex.y * scale;
-	gl_Position = projection * vec4(vertexPosition_worldspace,1.0f);
+	TexCoords = 0.2f*(uv+textureindex.xy);
+	//vec3 CameraRight_worldspace = {view[0][0], view[1][0], view[2][0]};
+	//vec3 CameraUp_worldspace = {view[0][1], view[1][1], view[2][1]};
+	//vec3 vertexPosition_worldspace = offset3 
+	//	+ CameraRight_worldspace * vertex.x * scale
+	//	+ CameraUp_worldspace * vertex.y * scale;
+	gl_Position = projection * view * model * vec4(position,1.0f);
 }

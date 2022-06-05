@@ -10,11 +10,10 @@ public:
 	cgp::vec3 speed;
 	cgp::vec3 position;
 	cgp::affine_rts transform;
-	cannonball(cgp::vec3 theposition, cgp::affine_rts &transformation,float angle) : transform{transformation}
+	cannonball(cgp::vec3 theposition, cgp::affine_rts &transformation,float angle,cgp::vec3 speedy) : transform{transformation}
 	{
 		cgp::rotation_transform RTest = cgp::rotation_transform::from_axis_angle({0,0,1},angle);
-		speed = cgp::vec3(0 , -25, 15);
-		speed = RTest * speed;
+		speed = RTest * speedy;
 		position = transform * theposition;
 	};
 	void updateball(float dt);
@@ -22,12 +21,13 @@ public:
 
 class cannonballgenerator {
 public:
-
 	std::vector<cannonball> cannonballs;
-	std::vector<cgp::vec3> cannonpositions;
-	std::vector<float> cannontimers;
+	std::vector<cgp::vec3> cannonpositionsleft;
+	std::vector<cgp::vec3> cannonpositionsright;
+	std::vector<float> cannontimersleft;
+	std::vector<float> cannontimersright;
 	cgp::mesh_drawable cannon_drawable;
 	void initialize();
-	void drawballs(float dt, cgp::scene_environment_basic_camera_spherical_coords& environment, cgp::affine_rts& transformation, float angle);
+	void drawballs(float dt, cgp::scene_environment_basic_camera_spherical_coords& environment, cgp::affine_rts& transformation, float angle,bool left, bool right);
 
 };

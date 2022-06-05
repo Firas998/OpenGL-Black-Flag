@@ -2,20 +2,31 @@
 
 using namespace cgp;
 
-ParticleGenerator::ParticleGenerator(GLuint const shaderprogram, unsigned int amount)
-    : amount(30),shaderprogram(shaderprogram)
+ParticleGenerator::ParticleGenerator(GLuint const shaderprogram, unsigned int amount,vec3 generatorposition,vec3 Velocity)
+    : amount(amount),shaderprogram(shaderprogram)
 {
-    this->init();
+    this->init(generatorposition,Velocity);
 }
 
-void ParticleGenerator::Update(float dt, unsigned int newParticles, vec3 offset)
+void ParticleGenerator::Update(float dt, unsigned int newParticles, vec3 generatorposition,vec3 Velocity)
 {
     // add new particles 
+    
+    
     for (unsigned int i = 0; i < newParticles; ++i)
     {
+        /*
         int unusedParticle = this->firstUnusedParticle();
-        this->respawnParticle(this->particles[unusedParticle] , offset);
+        if (unusedParticle == 0) {
+            this->particles.push_back(Particle(generatorposition, Velocity));
+        }
+        else {
+            this->respawnParticle(this->particles[unusedParticle], generatorposition, Velocity);
+        }
+        */
     }
+    
+    
     // update all particles
     for (unsigned int i = 0; i < this->amount; ++i)
     {
@@ -24,8 +35,7 @@ void ParticleGenerator::Update(float dt, unsigned int newParticles, vec3 offset)
         if (p.Life > 0.0f)
         {	// particle is alive, thus update
             p.Position += p.Velocity * dt;
-            p.Color.w -= dt * 2.5f;
-            p.textureindex = (int)((p.Life / TotalDuration) * 25);
+            p.textureindex = (int)((1-((1.0f*p.Life) / TotalDuration)) * 15);
             
         }
     }
@@ -38,19 +48,17 @@ void ParticleGenerator::Draw(cgp::scene_environment_basic_camera_spherical_coord
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDepthMask(false);
-    for (Particle particle : this->particles)
+    for (Particle &particle : this->particles)
     {
         if (particle.Life > 0.0f)
         {   
             drawable_quad.transform.translation = particle.Position;
-            drawable_quad.transform.rotation = rotation_transform::between_vector(cgp::vec3( 0,1,0 ), environment.camera.front());
-            cgp::vec3 index{ particle.textureindex / 5, particle.textureindex % 5,0.0f };
-            //GLint index_location = glGetUniformLocation(shaderprogram, "index");
-            drawable_quad.shading.phong.ambient = index.x;
-            drawable_quad.shading.phong.diffuse = index.y;
-            //cgp::opengl_uniform(shaderprogram, "couleur", particle.Color.x, particle.Color.y, particle.Color.z, particle.Color.w,false);
+            drawable_quad.transform.rotation = rotation_transform::between_vector(cgp::vec3(0, 1, 0), environment.camera.front());
+            glUseProgram(shaderprogram);
+            cgp::vec3 index{ particle.textureindex % 5 , particle.textureindex / 5,0.0f };
+            cgp::opengl_uniform(shaderprogram, "textureindex", index);
+            glUseProgram(0);
             cgp::draw(drawable_quad, environment);
-            
         }
     }
     // don't forget to reset to default blending mode
@@ -58,17 +66,17 @@ void ParticleGenerator::Draw(cgp::scene_environment_basic_camera_spherical_coord
     glDisable(GL_BLEND);
 }
 
-void ParticleGenerator::init()
+void ParticleGenerator::init(vec3 generatorposition,vec3 Velocity)
 {
     drawable_quad.initialize(mesh_primitive_quadrangle({ -1, 0, -1 }, { 1,0,-1 }, { 1,0,1 }, { -1,0,1 }), "Particle_mesh");
     drawable_quad.shader = shaderprogram;
     drawable_quad.texture = texture_image_id;
     for (unsigned int i = 0; i < this->amount; ++i)
-        this->particles.push_back(Particle());
+        this->particles.push_back(Particle(generatorposition,Velocity,TotalDuration));
 }
 
 // stores the index of the last particle used (for quick access to next dead particle)
-unsigned int lastUsedParticle = 0;
+
 unsigned int ParticleGenerator::firstUnusedParticle()
 {
     // first search from last used particle, this will usually return almost instantly
@@ -86,15 +94,12 @@ unsigned int ParticleGenerator::firstUnusedParticle()
         }
     }
     // all particles are taken, override the first one (note that if it repeatedly hits this case, more particles should be reserved)
-    lastUsedParticle = 0;
+    lastUsedParticle = 200000;
     return 0;
 }
 
-void ParticleGenerator::respawnParticle(Particle& particle, vec3 offset)
+void ParticleGenerator::respawnParticle(Particle& particle, vec3 generatorposition,vec3 Velocity)
 {
-    float random = ((rand() % 100) - 50) / 10.0f;
-    float rColor = 0.5f + ((rand() % 100) / 100.0f);
-    particle.Position = vec3{ random,0,0 } + offset;
-    particle.Color = vec4(rColor, rColor, rColor, 1.0f);
-    particle.Life = 1.0f;
+    Particle particule { generatorposition,Velocity, TotalDuration };
+    particle = particule;
 }

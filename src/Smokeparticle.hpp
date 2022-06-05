@@ -8,36 +8,36 @@ using namespace cgp;
 struct Particle {
 	vec3 Position;
 	vec3 Velocity;
-	vec4 Color;
     int textureindex;
 	float Life;
-    Particle() : Position{ 0,0,0 }, Velocity{ 0.0f,0,-1.0f }, Color{ 0,0,0,0 }, Life(5.0f) 
+    float radius;
+    Particle(vec3 generatorposition, vec3 Velocity,float duration): Position{ generatorposition }, Velocity{ Velocity }, radius{ 5 }, Life(duration)
     {
-        float random = ((rand() % 100) - 50) / 10.0f;
-        Position.y = random;
+        float random = ((double)rand() / (RAND_MAX)) * radius;
+        float random2 = ((double)rand() / (RAND_MAX)) * radius;
+        Position = vec3(random, random2, 0);
     }
 };
 
 class ParticleGenerator
 {
 public:
-    ParticleGenerator(GLuint const shader,unsigned int amount);
-    void Update(float dt, unsigned int newParticles, vec3 offset = vec3(0.0f, 0.0f,0.0f));
+    ParticleGenerator(GLuint const shader,unsigned int amount,vec3 generatorposition=vec3(0,0,0), vec3 Velocity=vec3(0,0,0));
+    void Update(float dt, unsigned int newParticles, vec3 generatorposition,vec3 Velocity);
     void Draw(cgp::scene_environment_basic_camera_spherical_coords &environment);
 private:
-    // states
+    unsigned int shaderprogram;
     std::vector<Particle> particles;
-    unsigned int shaderprogram; 
     cgp::mesh_drawable drawable_quad;
     unsigned int amount;
-    cgp::scene_environment_basic_camera_spherical_coords *environment;
-    float TotalDuration = 4.0f;
+    unsigned int lastUsedParticle;
+    cgp::vec3 generatorposition;
+    float TotalDuration = 10.0f;
     GLuint const texture_image_id= cgp::opengl_load_texture_image("assets/Explosion02_5x5.png",
         GL_REPEAT,
         GL_REPEAT);
-    unsigned int VAO;
-    void init();
+    void init(vec3 generatorposition,vec3 Velocity);
     unsigned int firstUnusedParticle();
-    void respawnParticle(Particle& particle, vec3 offset = vec3(0.0f, 0.0f,0.0f));
+    void respawnParticle(Particle& particle, vec3 generatorposition, vec3 Velocity);
 };
 

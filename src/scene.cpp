@@ -11,17 +11,16 @@ void scene_structure::initialize()
 	// ***************************************** //
 
 	Cannons.initialize();
-	hahaha.initialize(cgp::mesh_primitive_sphere(), "alohamora");
 
 	global_frame.initialize(mesh_primitive_frame(), "Frame");
 	environment.camera.axis = camera_spherical_coordinates_axis::z;
 	environment.camera.look_at({ -50.0f,0.0f,0.0f }, { 10,0,10 });
 
-	player_ship.create_ship();
-	other_ship.create_ship();
+	//player_ship.create_ship();
+	//other_ship.create_ship();
 
-	//GLuint const shader = opengl_load_shader("shaders/smokeparticle/vert.glsl", "shaders/smokeparticle/frag.glsl");
-	//Particles = new ParticleGenerator(shader, 50);
+	GLuint const shader = opengl_load_shader("shaders/smokeparticle/vert.glsl", "shaders/smokeparticle/frag.glsl");
+	Particles = new ParticleGenerator(shader, 50,cgp::vec3(0,0,0),cgp::vec3(0,0,1));
 
 
 	/*
@@ -32,7 +31,7 @@ void scene_structure::initialize()
 
 
 	fps_record.start();
-	ocean.init();
+	//ocean.init();
 	//other_ship.sink();
 }
 
@@ -73,29 +72,28 @@ void scene_structure::display() {
 
 	environment.camera.distance_to_center = gui.zoomLevel;
 
-	ocean.render(1920, 1080, timer.t, environment);
-	ocean.update(dt, environment);
+	//ocean.render(1920, 1080, timer.t, environment);
+	//ocean.update(dt, environment);
 
 
 	// Basic elements of the scene
 	environment.light = environment.camera.position();
 
-	player_ship.update_position(environment, position, angle, ocean);
-	player_ship.display_ship(environment,ship1_transform);
+	//player_ship.update_position(environment, position, angle, ocean);
+	//player_ship.display_ship(environment,ship1_transform);
 
-	other_ship.update_position(environment, vec3(0, 50, 0), Pi, ocean);
-	other_ship.display_ship(environment,ship2_transform);
+	//other_ship.update_position(environment, vec3(0, 50, 0), Pi, ocean);
+	//other_ship.display_ship(environment,ship2_transform);
 
+	float particles_dt = 0.05;
+	Particles->Update(particles_dt,25,cgp::vec3(0,0,0),cgp::vec3(0,0,1));
+	Particles->Draw(environment);
 
-	//Particles->Update(0.01,30);
-	//Particles->Draw(environment);
 	//draw(terrain_drawable, environment);
-
 	//cannonballs
 	float cannons_dt = 0.05;
-	Cannons.drawballs(cannons_dt, environment, ship1_transform,angle);
+	Cannons.drawballs(cannons_dt, environment, ship1_transform,angle,left,right);
 
-	draw(hahaha, environment);
 
 
 
@@ -126,4 +124,15 @@ void scene_structure::set_window_title(GLFWwindow* window) {
 	glfwSetWindowTitle(window, title.c_str());
 }
 
+void scene_structure::update_from_key(int key, int action) {
+	if (key == GLFW_KEY_K) {
+		if (action == GLFW_PRESS) left = true;
+		if (action == GLFW_RELEASE) left = false;
+	}
+
+	if (key == GLFW_KEY_L) {
+		if (action == GLFW_PRESS) right = true;
+		if (action == GLFW_RELEASE) right = false;
+	}
+}
 
