@@ -10,33 +10,33 @@ ParticleGenerator::ParticleGenerator(GLuint const shaderprogram, unsigned int am
 
 void ParticleGenerator::Update(float dt, unsigned int newParticles, vec3 generatorposition,vec3 Velocity)
 {
-    // add new particles 
-    
-    
+
+    // Delete dead particles
+    while (this->particles.front().Life < 0) {
+        this->particles.pop();
+    }
+
+    // If there are too many particles, delete some
+    while (this->particles.size() > 2000 - newParticles) {
+        this->particles.pop();
+    }
+
+    // add new particles
     for (unsigned int i = 0; i < newParticles; ++i)
     {
-        /*
-        int unusedParticle = this->firstUnusedParticle();
-        if (unusedParticle == 0) {
-            this->particles.push_back(Particle(generatorposition, Velocity));
-        }
-        else {
-            this->respawnParticle(this->particles[unusedParticle], generatorposition, Velocity);
-        }
-        */
+        this->particles.push(Particle(generatorposition, Velocity, 1.0f));
     }
     
     
     // update all particles
-    for (unsigned int i = 0; i < this->amount; ++i)
-    {
-        Particle& p = this->particles[i];
-        p.Life -= dt; // reduce life
+    for (auto it = this->particles._Get_container().begin(); it != this->particles._Get_container().end(); ++it) {
+        Particle p = *it;
         if (p.Life > 0.0f)
-        {	// particle is alive, thus update
+        {	
+            // particle is alive, thus update
             p.Position += p.Velocity * dt;
-            p.textureindex = (int)((1-((1.0f*p.Life) / TotalDuration)) * 15);
-            
+            p.textureindex = (int)((1 - ((1.0f * p.Life) / TotalDuration)) * 15);
+
         }
     }
 }
@@ -48,7 +48,7 @@ void ParticleGenerator::Draw(cgp::scene_environment_basic_camera_spherical_coord
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDepthMask(false);
-    for (Particle &particle : this->particles)
+    for (Particle const& particle : this->particles._Get_container())
     {
         if (particle.Life > 0.0f)
         {   
@@ -72,30 +72,7 @@ void ParticleGenerator::init(vec3 generatorposition,vec3 Velocity)
     drawable_quad.shader = shaderprogram;
     drawable_quad.texture = texture_image_id;
     for (unsigned int i = 0; i < this->amount; ++i)
-        this->particles.push_back(Particle(generatorposition,Velocity,TotalDuration));
-}
-
-// stores the index of the last particle used (for quick access to next dead particle)
-
-unsigned int ParticleGenerator::firstUnusedParticle()
-{
-    // first search from last used particle, this will usually return almost instantly
-    for (unsigned int i = lastUsedParticle; i < this->amount; ++i) {
-        if (this->particles[i].Life <= 0.0f) {
-            lastUsedParticle = i;
-            return i;
-        }
-    }
-    // otherwise, do a linear search
-    for (unsigned int i = 0; i < lastUsedParticle; ++i) {
-        if (this->particles[i].Life <= 0.0f) {
-            lastUsedParticle = i;
-            return i;
-        }
-    }
-    // all particles are taken, override the first one (note that if it repeatedly hits this case, more particles should be reserved)
-    lastUsedParticle = 200000;
-    return 0;
+        this->particles.push(Particle(generatorposition,Velocity,TotalDuration));
 }
 
 void ParticleGenerator::respawnParticle(Particle& particle, vec3 generatorposition,vec3 Velocity)

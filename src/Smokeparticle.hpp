@@ -1,11 +1,13 @@
 #pragma once
 #include <vector>
 #include "cgp/cgp.hpp"
+#include <queue>
 
 using namespace cgp;
 
 
-struct Particle {
+class Particle {
+public:
 	vec3 Position;
 	vec3 Velocity;
     int textureindex;
@@ -27,7 +29,7 @@ public:
     void Draw(cgp::scene_environment_basic_camera_spherical_coords &environment);
 private:
     unsigned int shaderprogram;
-    std::vector<Particle> particles;
+    std::queue<Particle, std::deque<Particle>> particles;
     cgp::mesh_drawable drawable_quad;
     unsigned int amount;
     unsigned int lastUsedParticle;
@@ -37,7 +39,6 @@ private:
         GL_REPEAT,
         GL_REPEAT);
     void init(vec3 generatorposition,vec3 Velocity);
-    unsigned int firstUnusedParticle();
     void respawnParticle(Particle& particle, vec3 generatorposition, vec3 Velocity);
 };
 
