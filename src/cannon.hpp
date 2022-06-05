@@ -13,7 +13,7 @@ public:
 	cannonball(cgp::vec3 theposition, cgp::affine_rts &transformation,float angle) : transform{transformation}
 	{
 		cgp::rotation_transform RTest = cgp::rotation_transform::from_axis_angle({0,0,1},angle);
-		speed = cgp::vec3(0 , -25, 5);
+		speed = cgp::vec3(0 , -25, 15);
 		speed = RTest * speed;
 		position = transform * theposition;
 	};
