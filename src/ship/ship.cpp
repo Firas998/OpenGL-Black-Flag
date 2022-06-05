@@ -62,7 +62,7 @@ void Ship::sink() {
 	}
 }
 
-void Ship::display_ship(Environment env) {
+void Ship::display_ship(Environment env,cgp::affine_rts &transform) {
 	rotation_transform R = rotation * 
 		rotation_transform::from_axis_angle({ 1,0,0 }, PI / 2) * 
 		rotation_transform::from_axis_angle({0,0,1}, 0.05);
@@ -71,6 +71,9 @@ void Ship::display_ship(Environment env) {
 		loader.meshes[i].transform.rotation = R;
 		loader.meshes[i].transform.translation = position + t;
 		loader.meshes[i].transform.scaling = 0.5;
+		if (i == 0) {
+			transform = loader.meshes[i].transform;
+		}
 		draw(loader.meshes[i], env);
 	}
 	

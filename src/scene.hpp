@@ -4,7 +4,7 @@
 #include "ship/ship.hpp"
 #include "Smokeparticle.hpp"
 #include "island.hpp"
-//#include "cannon.hpp"
+#include "cannon.hpp"
 #include "ocean.hpp"
 
 // The element of the GUI that are not already stored in other structures
@@ -32,12 +32,15 @@ struct scene_structure {
 	//cgp::mesh_drawable terrain_drawable;
 	//perlin_noise_parameters parameters;
 	//island island;
+	// 
 	//Cannonballs
-	//cannonballgenerator Cannons; 
+	cannonballgenerator Cannons; 
 	//cgp::affine_rts ship_transform;
 	//ParticleGenerator* Particles;
 
-
+	mesh_drawable hahaha;
+	cgp::affine_rts ship1_transform;
+	cgp::affine_rts ship2_transform;
 	Ship player_ship;
 	Ship other_ship;
 	Ocean ocean;
