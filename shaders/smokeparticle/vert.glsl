@@ -20,8 +20,9 @@ void main()
 	ParticleColor = color;
 	vec3 CameraRight_worldspace = {view[0][0], view[1][0], view[2][0]};
 	vec3 CameraUp_worldspace = {view[0][1], view[1][1], view[2][1]};
-	vec3 vertexPosition_worldspace = offset
-	+ CameraRight_worldspace * vertex.x * scale
-    + CameraUp_worldspace * vertex.y * scale
+	vec3 offset3 = {offset.x, offset.y, 0};
+	vec3 vertexPosition_worldspace = offset3 
+		+ CameraRight_worldspace * vertex.x * scale
+		+ CameraUp_worldspace * vertex.y * scale;
 	gl_Position = projection * vec4(vertexPosition_worldspace,1.0f);
 }
