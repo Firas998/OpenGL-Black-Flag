@@ -10,18 +10,17 @@ void scene_structure::initialize()
 	// Basic set-up
 	// ***************************************** //
 
-	Cannons.initialize();
+
 
 	global_frame.initialize(mesh_primitive_frame(), "Frame");
 	environment.camera.axis = camera_spherical_coordinates_axis::z;
 	environment.camera.look_at({ -50.0f,0.0f,0.0f }, { 10,0,10 });
 
-	//player_ship.create_ship();
-	//other_ship.create_ship();
+	player_ship.create_ship();
+	other_ship.create_ship();
 
 	GLuint const shader = opengl_load_shader("shaders/smokeparticle/vert.glsl", "shaders/smokeparticle/frag.glsl");
-	Particles = new ParticleGenerator(shader, 50,cgp::vec3(0,0,0),cgp::vec3(0,0,1));
-
+	Cannons.initialize(shader);
 
 	/*
 	terrain_mesh = island.create_terrain_mesh();
@@ -31,8 +30,8 @@ void scene_structure::initialize()
 
 
 	fps_record.start();
-	//ocean.init();
-	//other_ship.sink();
+	ocean.init();
+	other_ship.sink();
 }
 
 
@@ -72,26 +71,26 @@ void scene_structure::display() {
 
 	environment.camera.distance_to_center = gui.zoomLevel;
 
-	//ocean.render(1920, 1080, timer.t, environment);
-	//ocean.update(dt, environment);
+	ocean.render(1920, 1080, timer.t, environment);
+	ocean.update(dt, environment);
 
 
 	// Basic elements of the scene
 	environment.light = environment.camera.position();
 
-	//player_ship.update_position(environment, position, angle, ocean);
-	//player_ship.display_ship(environment,ship1_transform);
+	player_ship.update_position(environment, position, angle, ocean);
+	player_ship.display_ship(environment,ship1_transform);
 
-	//other_ship.update_position(environment, vec3(0, 50, 0), Pi, ocean);
-	//other_ship.display_ship(environment,ship2_transform);
+	other_ship.update_position(environment, vec3(0, 50, 0), Pi, ocean);
+	other_ship.display_ship(environment,ship2_transform);
 
-	float particles_dt = 0.05;
-	Particles->Update(particles_dt,25,cgp::vec3(0,0,0),cgp::vec3(0,0,1));
-	Particles->Draw(environment);
+	//float particles_dt = 0.1f;
+	//Particles->Update(particles_dt,25,cgp::vec3(0,0,0),cgp::vec3(0,0,1));
+	//Particles->Draw(environment);
 
 	//draw(terrain_drawable, environment);
 	//cannonballs
-	float cannons_dt = 0.05;
+	float cannons_dt = 0.1;
 	Cannons.drawballs(cannons_dt, environment, ship1_transform,angle,left,right);
 
 
