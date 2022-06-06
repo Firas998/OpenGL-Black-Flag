@@ -31,7 +31,7 @@ void scene_structure::initialize()
 
 	fps_record.start();
 	ocean.init();
-	other_ship.sink();
+	// other_ship.sink();
 }
 
 

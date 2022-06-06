@@ -6,8 +6,6 @@ using namespace cgp;
 
 const cgp::vec3 cannonball::g = cgp::vec3(0, 0, -9.81f);
 
-const std::vector<genparams> ParticleGenerator::allparams({ { 0.25f,0.01f,0.1f,1.0f,5,1.0f },{ 0.25f,0.1f,0.1f,1.0f,5,1.0f } });
-
 void cannonballgenerator::initialize(GLuint const prog) {
 	shaderprogram = prog;
 	texture_id = cgp::opengl_load_texture_image("assets/Explosion02_5x5.png",
