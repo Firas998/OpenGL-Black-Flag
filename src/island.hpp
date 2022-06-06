@@ -13,10 +13,10 @@ struct perlin_noise_parameters
 	float noisescale = 0.230f;
 	float frequency_gain = 1.7f;
 	int octave = 6;
-	float terrain_height = 1.7f;
+	float terrain_height = 1.0f;
 	//use curve function here
-	cgp::buffer<float> x_axis = { 0,0,0.5f,2.0f,2.0f };
-	cgp::buffer<float> y_axis ={0,0 ,0.20f,2.0f,2.0f};
+	cgp::buffer<float> x_axis = { 0,0,0.5f,1.0f,2.0f};
+	cgp::buffer<float> y_axis ={0,0 ,0.3f,1.0f,2.0f};
 	float height(float noise);
 	
 };

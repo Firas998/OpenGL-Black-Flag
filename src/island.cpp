@@ -15,23 +15,24 @@ float island::evaluate(float height) {
 
 mesh island::create_terrain_mesh()
 {
-	Terraintype WaterDeep = { "water_deep",0.1f,cgp::vec3(0.007f,0.294f,0.525f) };
-    Terraintype WaterShallow = { "water_shallow",0.2f,cgp::vec3(0.7764f,0.9f,0.925f) };
-    Terraintype Sand = { "sand",0.4f,cgp::vec3(0.761f,0.968f,0.5f) };
-    Terraintype Grass = { "grass",0.6f,cgp::vec3(0.219f,0.84f,0.141f) };
-	Terraintype Rock1 = { "rock1",0.7f,cgp::vec3(0.705f, 0.56f, 0.423f) };
-    Terraintype Rock2 = { "rock2",0.9f,cgp::vec3(0.52f, 0.338f, 0.325f) };
-    Terraintype Snow = { "snow",1.0f,cgp::vec3(1, 1, 1) };
+
+	Terraintype WaterDeep = { "water_deep",0.2f,cgp::vec3(0.007f,0.294f,0.525f) };
+    Terraintype WaterShallow = { "water_shallow",0.5f,cgp::vec3(0.7764f,0.9f,0.925f) };
+    Terraintype Sand = { "sand" ,1.2f,cgp::vec3(0.761f,0.968f,0.5f) };
+    Terraintype Grass = { "grass",1.6f,cgp::vec3(0.219f,0.84f,0.141f) };
+    Terraintype Rock2 = { "rock2",1.9f,cgp::vec3(0.52f, 0.338f, 0.325f) };
+    Terraintype Snow = { "snow",2.0f,cgp::vec3(1, 1, 1) };
 	regions.push_back(WaterDeep);
 	regions.push_back(WaterShallow);
     regions.push_back(Sand);
     regions.push_back(Grass);
-    regions.push_back(Rock1);
     regions.push_back(Rock2);
     regions.push_back(Snow);
 	int const terrain_sample = 100;
-    vec3 offset = { 0,0,0 };
+    vec3 offset = { 250,250,0 };
 	mesh terrain = mesh_primitive_grid(offset+vec3(- 100, -100, 0), offset + vec3(100, -100, 0), offset + vec3(100, 100, 0 ), offset +vec3( - 100, 100, 0 ), terrain_sample, terrain_sample);
+    
+    
     int const N = std::sqrt(terrain.position.size());
     for (int ku = 0; ku < N; ++ku) {
         for (int kv = 0; kv < N; ++kv) {
@@ -72,7 +73,6 @@ void island::update_terrain(mesh& terrain, mesh_drawable& terrain_visual, perlin
 			terrain.position[idx].z = parameters.terrain_height*noise;
 
 			// use also the noise as color value
-			terrain.color[idx] = 0.3f * vec3(0, 0.5f, 0) + 0.7f * noise * vec3(1, 1, 1);
 			
 			for (int i = 0; i < regions.size(); i++) {
 				if (noise<= regions[i].heightvalue) {
