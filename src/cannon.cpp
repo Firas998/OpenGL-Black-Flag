@@ -57,9 +57,7 @@ void cannonballgenerator::initialize(GLuint const prog) {
 void cannonball::updateball(float dt) {
 	speed = speed + dt * g;
 	position=position + dt * speed;
-	cannongen->Update(dt, 2, position, -speed);
-	
-
+	cannongen->Update(dt, 2, position, cgp::normalize(- speed));
 }
 void cannonballgenerator::drawballs(float dt, cgp::scene_environment_basic_camera_spherical_coords& environment,cgp::affine_rts &transformation,float angle,bool left, bool right) {
 	for (int i = 0; i < 9; i++) {
@@ -77,7 +75,7 @@ void cannonballgenerator::drawballs(float dt, cgp::scene_environment_basic_camer
 		else if (cannontimersright[i] < 0 && right) {
 			cannontimersright[i] = 3 + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (2 - 1)));
 			cannonball* ball = new cannonball(cannonpositionsleft[i], transformation, angle, cgp::vec3(0, -25, 15));
-			ParticleGenerator *p = new ParticleGenerator(shaderprogram, texture_id, 10, ball->position, -ball->speed, 0);
+			ParticleGenerator *p = new ParticleGenerator(shaderprogram, texture_id, 10, ball->position, cgp::normalize(- ball->speed), 0);
 			ball->cannongen = p;
 			cannonballs.push_back(ball);
 			createblast(cannonpositionsright[i], transformation, angle, cgp::vec3(0, -1, 0));
