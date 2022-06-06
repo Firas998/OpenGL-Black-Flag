@@ -6,8 +6,9 @@ using namespace cgp;
 
 const cgp::vec3 cannonball::g = cgp::vec3(0, 0, -9.81f);
 
-void cannonballgenerator::initialize(GLuint const prog) {
+void cannonballgenerator::initialize(GLuint const prog, Ship& other_ship) {
 	shaderprogram = prog;
+	this->other_ship = &other_ship;
 	texture_id = cgp::opengl_load_texture_image("assets/Explosion02_5x5.png",
 		GL_REPEAT,
 		GL_REPEAT);
@@ -95,8 +96,15 @@ void cannonballgenerator::drawballs(float dt, cgp::scene_environment_basic_camer
 		cgp::vec3 position = (*it)->position;
 		cgp::affine_rts inv = inverse(ship2_transform);
 		position = inv * position;
-		if ((position.x>-6 && position.x<29)&& (position.y > 0 && position.x < 13)&& (position.z > -14 && position.z < -8.7))
+		if ((position.x > -6 && position.x < 29) && (position.y > 0 && position.x < 13) && (position.z > -14 && position.z < -8.7)) {
 			it = cannonballs.erase(it);
+			std::cout << "Hit detected" << std::endl;
+			number_of_hits++;
+			if (number_of_hits > 10) {
+				other_ship->sink();
+			}
+		}
+			
 		if (it != cannonballs.end())
 			++it;
 

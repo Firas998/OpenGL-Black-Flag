@@ -20,7 +20,7 @@ void scene_structure::initialize()
 	other_ship.create_ship();
 
 	GLuint const shader = opengl_load_shader("shaders/smokeparticle/vert.glsl", "shaders/smokeparticle/frag.glsl");
-	Cannons.initialize(shader);
+	Cannons.initialize(shader, other_ship);
 
 	
 	//terrain_mesh = island.create_terrain_mesh();
