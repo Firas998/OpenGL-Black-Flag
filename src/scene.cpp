@@ -87,7 +87,7 @@ void scene_structure::display() {
 	draw(terrain_drawable, environment);
 	//cannonballs
 	float cannons_dt = 0.1;
-	Cannons.drawballs(cannons_dt, environment, ship1_transform,angle,left,right);
+	Cannons.drawballs(cannons_dt, environment, ship1_transform,ship2_transform,angle,left,right);
 
 
 

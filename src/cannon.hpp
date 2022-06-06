@@ -32,7 +32,7 @@ class cannonballgenerator {
 
 private:
 	GLuint texture_id;
-
+	GLuint texture_id_smoke;
 public:
 	unsigned int shaderprogram;
 	std::deque<cannonball*> cannonballs;
@@ -43,10 +43,11 @@ public:
 	std::vector<float> cannontimersright;
 	cgp::mesh_drawable cannon_drawable;
 	cgp::mesh_drawable particle_drawable;
+	cgp::mesh_drawable smoke_drawable;
 	float particle_size_scale = 1.0f;
 	void initialize(GLuint const shaderprogram);
 	void createblast(cgp::vec3 theposition, cgp::affine_rts& transformation, float angle,cgp::vec3 velocity);
-	void drawballs(float dt, cgp::scene_environment_basic_camera_spherical_coords& environment, cgp::affine_rts& transformation, float angle,bool left, bool right);
+	void drawballs(float dt, cgp::scene_environment_basic_camera_spherical_coords& environment, cgp::affine_rts& transformation, cgp::affine_rts& ship2_transform,float angle,bool left, bool right);
 	void Draw_Update_Particles(float dt, cgp::affine_rts& transformation,float angle, cgp::scene_environment_basic_camera_spherical_coords& environment);
 
 };

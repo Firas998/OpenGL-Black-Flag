@@ -2,7 +2,7 @@
 
 using namespace cgp;
 
-const std::vector<genparams> ParticleGenerator::allparams({ { 0.25f,0.01f,0.1f,1.0f,5,1.0f },{ 0.25f,0.1f,0.1f,1.0f,5,1.0f } });
+const std::vector<genparams> ParticleGenerator::allparams({ { 0.25f,0.01f,0.1f,1.0f,5,1.0f,5 },{ 0.25f,0.1f,0.1f,3.0f,20,10.0f,8 } });
 
 ParticleGenerator::ParticleGenerator(GLuint const shaderprogram, GLuint const texture_id, unsigned int amount,vec3 generatorposition,vec3 Velocity,int params)
     : shaderprogram(shaderprogram), texture_image_id(texture_id)
@@ -13,6 +13,7 @@ ParticleGenerator::ParticleGenerator(GLuint const shaderprogram, GLuint const te
     higherradius= allparams[params].higherradius;
     scale= allparams[params].scale;
     texturelimit= allparams[params].texturelimit;
+    dimsize = allparams[params].dimsize;
     this->init(generatorposition,Velocity,amount);
 }
 
@@ -62,7 +63,7 @@ void ParticleGenerator::Draw(cgp::scene_environment_basic_camera_spherical_coord
             drawable.transform.translation = particle->Position;
             drawable.transform.rotation = rotation_transform::between_vector(cgp::vec3(0, 1, 0), environment.camera.front());
             glUseProgram(shaderprogram);
-            cgp::vec3 index{ particle->textureindex % 5 , particle->textureindex / 5,0.0f };
+            cgp::vec3 index{ particle->textureindex % dimsize , particle->textureindex / dimsize,0.0f };
             cgp::opengl_uniform(shaderprogram, "textureindex", index);
             glUseProgram(0);
             cgp::draw(drawable, environment);

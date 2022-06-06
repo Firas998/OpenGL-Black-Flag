@@ -14,10 +14,16 @@ void cannonballgenerator::initialize(GLuint const prog) {
 
 	particle_drawable.initialize(mesh_primitive_quadrangle(vec3(-1, 0, -1) * particle_size_scale, vec3(1, 0, -1) * particle_size_scale, vec3(1, 0, 1) * particle_size_scale, vec3(-1, 0, 1) * particle_size_scale), "Particle_mesh");
 	particle_drawable.shader = shaderprogram;
-	GLuint const texture_particles = cgp::opengl_load_texture_image("assets/Explosion02_5x5.png",
+	particle_drawable.texture = texture_id;
+
+	texture_id_smoke = cgp::opengl_load_texture_image("assets/Cloud04_8x8.png",
 		GL_REPEAT,
 		GL_REPEAT);
-	particle_drawable.texture = texture_particles;
+
+	smoke_drawable.initialize(mesh_primitive_quadrangle(vec3(-1, 0, -1) * particle_size_scale, vec3(1, 0, -1) * particle_size_scale, vec3(1, 0, 1) * particle_size_scale, vec3(-1, 0, 1) * particle_size_scale), "Particle_mesh");
+	smoke_drawable.shader = shaderprogram;
+	smoke_drawable.texture = texture_id_smoke;
+
 
 	cannon_drawable.initialize(mesh_primitive_sphere(0.25f), "sphere");
 	GLuint const texture_image_id = opengl_load_texture_image("assets/iron.png",
@@ -57,7 +63,7 @@ void cannonball::updateball(float dt) {
 	position=position + dt * speed;
 	cannongen->Update(dt, 2, position, cgp::normalize(- speed));
 }
-void cannonballgenerator::drawballs(float dt, cgp::scene_environment_basic_camera_spherical_coords& environment,cgp::affine_rts &transformation,float angle,bool left, bool right) {
+void cannonballgenerator::drawballs(float dt, cgp::scene_environment_basic_camera_spherical_coords& environment,cgp::affine_rts &transformation, cgp::affine_rts& ship2_transform,float angle,bool left, bool right) {
 	for (int i = 0; i < 9; i++) {
 		cannontimersleft[i] -= dt;
 		cannontimersright[i] -= dt;
@@ -65,7 +71,7 @@ void cannonballgenerator::drawballs(float dt, cgp::scene_environment_basic_camer
 		if (cannontimersleft[i] < 0 && left) {
 			cannontimersleft[i] = 3 + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (2 - 1)));
 			cannonball *ball = new cannonball(cannonpositionsleft[i], transformation, angle, cgp::vec3(0, 25, 15));
-			ParticleGenerator *p = new ParticleGenerator(shaderprogram, texture_id, 10, ball->position, -ball->speed, 0);
+			ParticleGenerator *p = new ParticleGenerator(shaderprogram, texture_id, 10, ball->position, cgp::normalize(-ball->speed), 1);
 			ball->cannongen = p;
 			cannonballs.push_back(ball);
 			createblast(cannonpositionsleft[i], transformation, angle,cgp::vec3(0,1,0));
@@ -73,7 +79,7 @@ void cannonballgenerator::drawballs(float dt, cgp::scene_environment_basic_camer
 		else if (cannontimersright[i] < 0 && right) {
 			cannontimersright[i] = 3 + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (2 - 1)));
 			cannonball* ball = new cannonball(cannonpositionsleft[i], transformation, angle, cgp::vec3(0, -25, 15));
-			ParticleGenerator *p = new ParticleGenerator(shaderprogram, texture_id, 10, ball->position, cgp::normalize(- ball->speed), 0);
+			ParticleGenerator *p = new ParticleGenerator(shaderprogram, texture_id, 10, ball->position, cgp::normalize(- ball->speed), 1);
 			ball->cannongen = p;
 			cannonballs.push_back(ball);
 			createblast(cannonpositionsright[i], transformation, angle, cgp::vec3(0, -1, 0));
@@ -85,13 +91,24 @@ void cannonballgenerator::drawballs(float dt, cgp::scene_environment_basic_camer
 		cannonballs.pop_front();
 	}
 
+	for (auto it = cannonballs.begin(); it != cannonballs.end(); ) {
+		cgp::vec3 position = (*it)->position;
+		cgp::affine_rts inv = inverse(ship2_transform);
+		position = inv * position;
+		if ((position.x>-6 && position.x<29)&& (position.y > 0 && position.x < 13)&& (position.z > -14 && position.z < -8.7))
+			it = cannonballs.erase(it);
+		if (it != cannonballs.end())
+			++it;
+
+	}
+
 
 	for (cannonball *ball : cannonballs)
 	{
 		ball->updateball(dt);
 		cannon_drawable.transform.translation = ball->position;
 		draw(cannon_drawable, environment);
-		ball->cannongen->Draw(environment, particle_drawable);
+		ball->cannongen->Draw(environment, smoke_drawable);
 	}
 	Draw_Update_Particles(dt, transformation, angle, environment);
 }

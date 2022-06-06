@@ -13,6 +13,7 @@ struct genparams {
     float scale;
     float texturelimit;
     float Life;
+    int dimsize;
 };
 
 class Particle {
@@ -23,7 +24,7 @@ public:
 	float Life;
     float lowerradius;
     float higherradius;
-    float scale =1.0f;
+    float scale;
     Particle(vec3 generatorposition, vec3 normal, float duration,float lowerradius, float higherradius,float scaler) : lowerradius{ lowerradius }, higherradius{ higherradius }, Life(duration) ,scale{scaler}
     {
         float random1 = (double)rand() / RAND_MAX;
@@ -52,6 +53,7 @@ private:
     float higherradius;
     float scale;
     float texturelimit;
+    int dimsize;
     static const std::vector<genparams> allparams; 
     GLuint const texture_image_id;
     unsigned int shaderprogram;
