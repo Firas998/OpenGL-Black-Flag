@@ -6,7 +6,7 @@
 
 class cannonball {
 public:
-
+	ParticleGenerator* cannongen;
 	const static cgp::vec3 g;
 	cgp::vec3 speed;
 	cgp::vec3 position;

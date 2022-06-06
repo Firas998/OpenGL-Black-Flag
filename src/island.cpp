@@ -13,10 +13,6 @@ float island::evaluate(float height) {
     return std::pow(height, a) / (std::pow(height, a) + std::pow(b - b * height, a));
 }
 
-float island::clampnoise(float noise) {
-    return 1 - std::exp(-noise);
-};
-
 mesh island::create_terrain_mesh()
 {
 	Terraintype WaterDeep = { "water_deep",0.1f,cgp::vec3(0.007f,0.294f,0.525f) };

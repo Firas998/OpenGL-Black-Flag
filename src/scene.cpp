@@ -22,11 +22,11 @@ void scene_structure::initialize()
 	GLuint const shader = opengl_load_shader("shaders/smokeparticle/vert.glsl", "shaders/smokeparticle/frag.glsl");
 	Cannons.initialize(shader);
 
-	/*
-	terrain_mesh = island.create_terrain_mesh();
-	terrain_drawable.initialize(terrain_mesh, "terrain");
-	island.update_terrain(terrain_mesh, terrain_drawable, parameters);
-	*/
+	
+	//terrain_mesh = island.create_terrain_mesh();
+	//terrain_drawable.initialize(terrain_mesh, "terrain");
+	//island.update_terrain(terrain_mesh, terrain_drawable, parameters);
+
 
 
 	fps_record.start();
@@ -84,11 +84,7 @@ void scene_structure::display() {
 	other_ship.update_position(environment, vec3(0, 50, 0), Pi, ocean);
 	other_ship.display_ship(environment,ship2_transform);
 
-	//float particles_dt = 0.1f;
-	//Particles->Update(particles_dt,25,cgp::vec3(0,0,0),cgp::vec3(0,0,1));
-	//Particles->Draw(environment);
-
-	//draw(terrain_drawable, environment);
+	draw(terrain_drawable, environment);
 	//cannonballs
 	float cannons_dt = 0.1;
 	Cannons.drawballs(cannons_dt, environment, ship1_transform,angle,left,right);
@@ -101,19 +97,19 @@ void scene_structure::display() {
 
 void scene_structure::display_gui()
 {
-	/*
+	
 
 	bool update = false;
 	update |= ImGui::SliderFloat("Persistance", &parameters.persistency, 0.1f, 1.5f);
 	update |= ImGui::SliderFloat("Frequency gain", &parameters.frequency_gain, 1.5f, 2.5f);
 	update |= ImGui::SliderInt("Octave", &parameters.octave, 1, 8);
-	update |= ImGui::SliderFloat("Height", &parameters.terrain_height, 0.1f, 10.0f);
+	update |= ImGui::SliderFloat("Height", &parameters.terrain_height, 0.1f, 20.0f);
 	update |= ImGui::SliderFloat("Noise Scale", &parameters.noisescale, 0.0001f, 3.0f);
 
 	if (update)// if any slider has been changed - then update the terrain
 		island.update_terrain(terrain_mesh, terrain_drawable, parameters);
 
-	*/
+	
 
 }
 

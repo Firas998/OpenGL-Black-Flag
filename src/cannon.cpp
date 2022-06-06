@@ -54,6 +54,9 @@ void cannonballgenerator::initialize(GLuint const prog) {
 void cannonball::updateball(float dt) {
 	speed = speed + dt * g;
 	position=position + dt * speed;
+	//cannongen->Update(dt, 2, position, -speed);
+	
+
 }
 void cannonballgenerator::drawballs(float dt, cgp::scene_environment_basic_camera_spherical_coords& environment,cgp::affine_rts &transformation,float angle,bool left, bool right) {
 	for (int i = 0; i < 9; i++) {
@@ -63,12 +66,16 @@ void cannonballgenerator::drawballs(float dt, cgp::scene_environment_basic_camer
 		if (cannontimersleft[i] < 0 && left) {
 			cannontimersleft[i] = 3 + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (2 - 1)));
 			cannonball *ball = new cannonball(cannonpositionsleft[i], transformation, angle, cgp::vec3(0, 25, 15));
+			ParticleGenerator *p = new ParticleGenerator(shaderprogram, texture_id, 10, ball->position, -ball->speed, 0);
+			ball->cannongen = p;
 			cannonballs.push_back(ball);
 			createblast(cannonpositionsleft[i], transformation, angle,cgp::vec3(0,1,0));
 		}
 		else if (cannontimersright[i] < 0 && right) {
 			cannontimersright[i] = 3 + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (2 - 1)));
 			cannonball* ball = new cannonball(cannonpositionsleft[i], transformation, angle, cgp::vec3(0, -25, 15));
+			ParticleGenerator *p = new ParticleGenerator(shaderprogram, texture_id, 10, ball->position, -ball->speed, 0);
+			ball->cannongen = p;
 			cannonballs.push_back(ball);
 			createblast(cannonpositionsright[i], transformation, angle, cgp::vec3(0, -1, 0));
 		}
@@ -85,6 +92,7 @@ void cannonballgenerator::drawballs(float dt, cgp::scene_environment_basic_camer
 		ball->updateball(dt);
 		cannon_drawable.transform.translation = ball->position;
 		draw(cannon_drawable, environment);
+		//ball->cannongen->Draw(environment, particle_drawable);
 	}
 	Draw_Update_Particles(dt, transformation, angle, environment);
 }
@@ -107,14 +115,6 @@ void cannonballgenerator::Draw_Update_Particles(float dt, cgp::affine_rts& trans
 		delete particlegenerators.front().gen;
 		particlegenerators.pop_front();
 	}
-	/*
-	for (auto it = smokegenerators.begin(); it != smokegenerators.end(); ) {
-		if (it->ball < 0)
-			it = smokegenerators.erase(it);
-		if (it != smokegenerators.end())
-			++it;
-	}
-	*/
 
 	for (int i = 0; i < particlegenerators.size(); i++) {
 		ParticleGenerator* p = particlegenerators[i].gen;

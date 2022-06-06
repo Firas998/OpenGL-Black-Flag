@@ -29,11 +29,11 @@ struct scene_structure {
 
 	gui_parameters gui;                       // Standard GUI element storage
 
-	//cgp::mesh terrain_mesh;
-	//cgp::mesh_drawable terrain_drawable;
-	//perlin_noise_parameters parameters;
-	//island island;
-	// 
+	cgp::mesh terrain_mesh;
+	cgp::mesh_drawable terrain_drawable;
+	perlin_noise_parameters parameters;
+	island island;
+	
 	//Cannonballs
 	cannonballgenerator Cannons; 
 	bool left;

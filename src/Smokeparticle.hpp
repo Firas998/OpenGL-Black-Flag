@@ -29,12 +29,12 @@ public:
         float random1 = (double)rand() / RAND_MAX;
         float random2 = (double)rand() / RAND_MAX;
         double theta = 2 * 3.14159265358979323846264;
-        double rayon = sqrt(random2);
-        Position = vec3(random2 * lowerradius + cos(theta*random1), random2 * lowerradius + sin(theta*random1), 0);
+        Position = vec3(random2 * lowerradius * cos(theta*random1), random2 * lowerradius * sin(theta*random1), 0);
         Position= generatorposition + rotation_transform::between_vector(cgp::vec3(0, 0, 1), normal) * Position;
 
-        vec3 Position2 = vec3(random2 * higherradius + cos(theta * random1), random2 * higherradius + sin(theta * random1), 0);
-        Velocity = scale*(Position2 + vec3(0, 0, 1));
+        vec3 Position2 = vec3(random2 * higherradius * cos(theta * random1), random2 * higherradius * sin(theta * random1), 0);
+        Position2 = generatorposition + rotation_transform::between_vector(cgp::vec3(0, 0, 1), normal) * Position2;
+        Velocity = scale*(Position2-Position + vec3(0, 0, 1));
         Velocity= rotation_transform::between_vector(cgp::vec3(0, 0, 1), normal) *Velocity;
     }
 };
