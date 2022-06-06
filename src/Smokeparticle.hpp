@@ -42,7 +42,7 @@ public:
 class ParticleGenerator
 {
 public:
-    ParticleGenerator(GLuint const shader,unsigned int amount,vec3 generatorposition, vec3 Velocity,int params);
+    ParticleGenerator(GLuint const shader, GLuint const texture_id, unsigned int amount,vec3 generatorposition, vec3 Velocity,int params);
     void Update(float dt, unsigned int newParticles, vec3 generatorposition,vec3 Velocity);
     void Draw(cgp::scene_environment_basic_camera_spherical_coords &environment,cgp::mesh_drawable& drawable);
     float Life;
@@ -52,13 +52,11 @@ private:
     float higherradius;
     float scale;
     float texturelimit;
-    static const std::vector<genparams> allparams;
+    static const std::vector<genparams> allparams; 
+    GLuint const texture_image_id;
     unsigned int shaderprogram;
     std::deque<Particle> particles;
     cgp::mesh_drawable drawable_quad;
-    GLuint const texture_image_id= cgp::opengl_load_texture_image("assets/Explosion02_5x5.png",
-        GL_REPEAT,
-        GL_REPEAT);
     void init(vec3 generatorposition,vec3 Velocity,int amount);
     void respawnParticle(Particle& particle, vec3 generatorposition, vec3 Velocity);
 };

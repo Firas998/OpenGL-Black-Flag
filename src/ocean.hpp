@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cgp/cgp.hpp>
+#undef min
+#undef max
 
 typedef cgp::scene_environment_basic_camera_spherical_coords Environment;
 

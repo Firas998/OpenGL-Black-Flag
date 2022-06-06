@@ -4,8 +4,8 @@ using namespace cgp;
 
 const std::vector<genparams> ParticleGenerator::allparams({ { 0.25f,0.01f,0.1f,1.0f,5,1.0f },{ 0.25f,0.1f,0.1f,1.0f,5,1.0f } });
 
-ParticleGenerator::ParticleGenerator(GLuint const shaderprogram, unsigned int amount,vec3 generatorposition,vec3 Velocity,int params)
-    :shaderprogram(shaderprogram)
+ParticleGenerator::ParticleGenerator(GLuint const shaderprogram, GLuint const texture_id, unsigned int amount,vec3 generatorposition,vec3 Velocity,int params)
+    : shaderprogram(shaderprogram), texture_image_id(texture_id)
 {
     Life=allparams[params].Life;
     TotalDuration=allparams[params].TotalDuration;
@@ -27,16 +27,11 @@ void ParticleGenerator::Update(float dt, unsigned int newParticles, vec3 generat
     }
     
     // add new particles
-    for (unsigned int i = 0; i < newParticles; ++i)
-    {
+    for (unsigned int i = 0; i < newParticles; ++i) {
         this->particles.push_back(Particle(generatorposition, Velocity, TotalDuration,lowerradius,higherradius,scale));
     }
     
-    
-
-    
     // update all particles
-    
     for (int i = 0; i < this->particles.size(); i++) {
         Particle* p = &(this->particles[i]);
         p->Life = p->Life - dt;

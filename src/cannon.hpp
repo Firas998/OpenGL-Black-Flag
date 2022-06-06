@@ -29,9 +29,13 @@ struct BlastParticleGenerator {
 };
 
 class cannonballgenerator {
+
+private:
+	GLuint texture_id;
+
 public:
 	unsigned int shaderprogram;
-	std::vector<cannonball*> cannonballs;
+	std::deque<cannonball*> cannonballs;
 	std::deque<BlastParticleGenerator> particlegenerators;
 	std::vector<cgp::vec3> cannonpositionsleft;
 	std::vector<cgp::vec3> cannonpositionsright;
@@ -44,4 +48,5 @@ public:
 	void createblast(cgp::vec3 theposition, cgp::affine_rts& transformation, float angle,cgp::vec3 velocity);
 	void drawballs(float dt, cgp::scene_environment_basic_camera_spherical_coords& environment, cgp::affine_rts& transformation, float angle,bool left, bool right);
 	void Draw_Update_Particles(float dt, cgp::affine_rts& transformation,float angle, cgp::scene_environment_basic_camera_spherical_coords& environment);
+
 };

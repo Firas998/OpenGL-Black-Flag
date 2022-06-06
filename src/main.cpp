@@ -1,12 +1,15 @@
 
 #include "cgp/cgp.hpp" // Give access to the complete CGP library
 #include <iostream>  
+#include <windows.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "third_party/stb_image.h"
 
 // Custom scene of this code
 #include "scene.hpp"
+
+#define HIDE_CURSOR false
 
 
 
@@ -33,12 +36,14 @@ GLFWwindow* standard_window_initialization(int width=0, int height=0);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 	scene.gui.zoomLevel -= yoffset;
 	if (scene.gui.zoomLevel < 10) scene.gui.zoomLevel = 10;
-	if (scene.gui.zoomLevel > 100) scene.gui.zoomLevel = 100;
+	// if (scene.gui.zoomLevel > 100) scene.gui.zoomLevel = 100;
 }
 
 int main(int, char* argv[])
 {
 	std::cout << "Run " << argv[0] << std::endl;
+
+	if(HIDE_CURSOR) ShowCursor(false);
 
 
 	// ************************ //
@@ -135,7 +140,9 @@ GLFWwindow* standard_window_initialization(int width_target, int height_target)
 {
 	// Create the window using GLFW
 	// Forcing OpenGL version 4.6 or higher
+	glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
 	GLFWwindow* window = cgp::create_window(1920, 1080, "INF443: Black Flag - Louis Caubet & Firas Ben Jedidia", 4, 6);
+	
 
 	// Update storage for window size for the scene
 	int width = 0, height = 0;
