@@ -8,6 +8,9 @@ const cgp::vec3 cannonball::g = cgp::vec3(0, 0, -9.81f);
 
 void cannonballgenerator::initialize(GLuint const prog) {
 	shaderprogram = prog;
+	texture_id = cgp::opengl_load_texture_image("assets/Explosion02_5x5.png",
+		GL_REPEAT,
+		GL_REPEAT);
 
 	particle_drawable.initialize(mesh_primitive_quadrangle(vec3(-1, 0, -1) * particle_size_scale, vec3(1, 0, -1) * particle_size_scale, vec3(1, 0, 1) * particle_size_scale, vec3(-1, 0, 1) * particle_size_scale), "Particle_mesh");
 	particle_drawable.shader = shaderprogram;
@@ -51,33 +54,29 @@ void cannonballgenerator::initialize(GLuint const prog) {
 void cannonball::updateball(float dt) {
 	speed = speed + dt * g;
 	position=position + dt * speed;
-
-	
 }
 void cannonballgenerator::drawballs(float dt, cgp::scene_environment_basic_camera_spherical_coords& environment,cgp::affine_rts &transformation,float angle,bool left, bool right) {
 	for (int i = 0; i < 9; i++) {
 		cannontimersleft[i] -= dt;
+		cannontimersright[i] -= dt;
+
 		if (cannontimersleft[i] < 0 && left) {
 			cannontimersleft[i] = 3 + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (2 - 1)));
 			cannonball *ball = new cannonball(cannonpositionsleft[i], transformation, angle, cgp::vec3(0, 25, 15));
 			cannonballs.push_back(ball);
 			createblast(cannonpositionsleft[i], transformation, angle,cgp::vec3(0,1,0));
 		}
-	}
-	for (int i = 0; i < 9; i++) {
-		cannontimersright[i] -= dt;
-		if (cannontimersright[i] < 0 && right) {
+		else if (cannontimersright[i] < 0 && right) {
 			cannontimersright[i] = 3 + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (2 - 1)));
-			cannonball *ball = new cannonball(cannonpositionsleft[i], transformation, angle, cgp::vec3(0, -25, 15));
+			cannonball* ball = new cannonball(cannonpositionsleft[i], transformation, angle, cgp::vec3(0, -25, 15));
 			cannonballs.push_back(ball);
 			createblast(cannonpositionsright[i], transformation, angle, cgp::vec3(0, -1, 0));
 		}
 	}
-	for (auto it = cannonballs.begin(); it != cannonballs.end(); ) {
-		if ((* it)->position.z < 0)
-			it = cannonballs.erase(it);
-		if (it != cannonballs.end())
-			++it;
+
+	while (cannonballs.size() > 0 && cannonballs.front()->position.z < 0) {
+		delete cannonballs.front();
+		cannonballs.pop_front();
 	}
 
 
@@ -95,20 +94,18 @@ void cannonballgenerator::createblast(cgp::vec3 theposition, cgp::affine_rts& tr
 	cgp::rotation_transform RTest = cgp::rotation_transform::from_axis_angle({ 0,0,1 }, angle);
 	vec3 speed = RTest * Velocity;
 	vec3 position = transformation * theposition;
-	ParticleGenerator *p = new ParticleGenerator( shaderprogram,10,position,speed,0 );
+	
+	ParticleGenerator *p = new ParticleGenerator( shaderprogram, texture_id, 10,position,speed,0 );
 	BlastParticleGenerator b { p,theposition,Velocity };
+	
 	particlegenerators.push_back(b);
 
 };
 
 void cannonballgenerator::Draw_Update_Particles(float dt, cgp::affine_rts& transformation, float angle, cgp::scene_environment_basic_camera_spherical_coords& environment){
-	while (particlegenerators.size() > 0) {
-		if (particlegenerators.front().gen->Life < 0) {
-			particlegenerators.pop_front();
-		}
-		else {
-			break;
-		}
+	while (particlegenerators.size() > 0 && particlegenerators.front().gen->Life < 0) {
+		delete particlegenerators.front().gen;
+		particlegenerators.pop_front();
 	}
 
 	for (int i = 0; i < particlegenerators.size(); i++) {
