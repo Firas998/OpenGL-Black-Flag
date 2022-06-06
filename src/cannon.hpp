@@ -39,7 +39,6 @@ public:
 	std::deque<BlastParticleGenerator> particlegenerators;
 	std::vector<cgp::vec3> cannonpositionsleft;
 	std::vector<cgp::vec3> cannonpositionsright;
-	std::vector<cgp::vec3> boundaries;
 	std::vector<float> cannontimersleft;
 	std::vector<float> cannontimersright;
 	cgp::mesh_drawable cannon_drawable;
