@@ -51,8 +51,8 @@ void cannonballgenerator::initialize(GLuint const prog) {
 	cannonpositionsleft.push_back((vec3(2.9597f, 4.8406f, -14.958) + vec3(2.9597f, 4.7485f, -14.958)) / 2);
 	cannonpositionsleft.push_back((vec3(0.051582f, 5.2053f, -14.597) + vec3(0.051582f, 5.1132f, -14.597)) / 2);
 
-	boundaries.push_back(vec3(23.264f, 4.6946f, -14.958)) ;
-	boundaries.push_back(vec3(20.218f, 4.45f, -15.573) );
+	boundaries.push_back(vec3(-6, 0, --14)) ;
+	boundaries.push_back(vec3(-6, 4.45f, -15.573) );
 	boundaries.push_back(vec3(17.343f, 4.27f, -15.876) );
 	boundaries.push_back(vec3(14.435f, 4.1542, -15.915) );
 	boundaries.push_back(vec3(11.505f, 4.1542f, -15.846)) ;
