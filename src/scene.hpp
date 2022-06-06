@@ -2,9 +2,9 @@
 
 #include "cgp/cgp.hpp"
 #include "ship/ship.hpp"
-#include "Smokeparticle.hpp"
+#include "cannons/Smokeparticle.hpp"
 #include "island.hpp"
-#include "cannon.hpp"
+#include "cannons/cannon.hpp"
 #include "ocean.hpp"
 #include <GLFW/glfw3.h>
 

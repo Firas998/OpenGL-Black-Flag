@@ -9,7 +9,7 @@
 // Custom scene of this code
 #include "scene.hpp"
 
-#define HIDE_CURSOR true
+#define HIDE_CURSOR false
 
 
 

@@ -2,7 +2,7 @@
 
 #include "cgp/cgp.hpp"
 #include <vector>
-#include <smokeparticle.hpp>
+#include "smokeparticle.hpp"
 #include "ship/ship.hpp"
 
 class cannonball {
