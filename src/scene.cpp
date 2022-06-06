@@ -23,9 +23,11 @@ void scene_structure::initialize()
 	Cannons.initialize(shader, other_ship);
 
 	
-	//terrain_mesh = island.create_terrain_mesh();
-	//terrain_drawable.initialize(terrain_mesh, "terrain");
-	//island.update_terrain(terrain_mesh, terrain_drawable, parameters);
+	terrain_mesh = island.create_terrain_mesh();
+	terrain_drawable.initialize(terrain_mesh, "terrain");
+	GLuint const terrain_shader = opengl_load_shader("shaders/terrain/vert.glsl", "shaders/terrain/frag.glsl");
+	terrain_drawable.shader = terrain_shader;
+	island.update_terrain(terrain_mesh, terrain_drawable, parameters);
 
 
 
@@ -99,6 +101,8 @@ void scene_structure::display_gui()
 {
 	
 
+	/*
+	
 	bool update = false;
 	update |= ImGui::SliderFloat("Persistance", &parameters.persistency, 0.1f, 1.5f);
 	update |= ImGui::SliderFloat("Frequency gain", &parameters.frequency_gain, 1.5f, 2.5f);
@@ -108,6 +112,11 @@ void scene_structure::display_gui()
 
 	if (update)// if any slider has been changed - then update the terrain
 		island.update_terrain(terrain_mesh, terrain_drawable, parameters);
+	*/
+	
+	
+	
+	
 
 	
 
