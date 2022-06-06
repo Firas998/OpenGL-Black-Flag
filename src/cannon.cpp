@@ -6,6 +6,8 @@ using namespace cgp;
 
 const cgp::vec3 cannonball::g = cgp::vec3(0, 0, -9.81f);
 
+const std::vector<genparams> ParticleGenerator::allparams({ { 0.25f,0.01f,0.1f,1.0f,5,1.0f },{ 0.25f,0.1f,0.1f,1.0f,5,1.0f } });
+
 void cannonballgenerator::initialize(GLuint const prog) {
 	shaderprogram = prog;
 	texture_id = cgp::opengl_load_texture_image("assets/Explosion02_5x5.png",
@@ -48,13 +50,22 @@ void cannonballgenerator::initialize(GLuint const prog) {
 	cannonpositionsleft.push_back((vec3(5.7567, 4.5144f, -15.378) + vec3(5.7567, 4.4223, -15.378)) / 2);
 	cannonpositionsleft.push_back((vec3(2.9597f, 4.8406f, -14.958) + vec3(2.9597f, 4.7485f, -14.958)) / 2);
 	cannonpositionsleft.push_back((vec3(0.051582f, 5.2053f, -14.597) + vec3(0.051582f, 5.1132f, -14.597)) / 2);
+
+	boundaries.push_back(vec3(23.264f, 4.6946f, -14.958)) ;
+	boundaries.push_back(vec3(20.218f, 4.45f, -15.573) );
+	boundaries.push_back(vec3(17.343f, 4.27f, -15.876) );
+	boundaries.push_back(vec3(14.435f, 4.1542, -15.915) );
+	boundaries.push_back(vec3(11.505f, 4.1542f, -15.846)) ;
+	boundaries.push_back(vec3(8.6325f, 4.3022f, -15.647) );
+	boundaries.push_back(vec3(5.7567, 4.5144f, -15.378) );
+	boundaries.push_back(vec3(2.9597f, 4.8406f, -14.958));
 }
 
 
 void cannonball::updateball(float dt) {
 	speed = speed + dt * g;
 	position=position + dt * speed;
-	//cannongen->Update(dt, 2, position, -speed);
+	cannongen->Update(dt, 2, position, -speed);
 	
 
 }
@@ -92,7 +103,7 @@ void cannonballgenerator::drawballs(float dt, cgp::scene_environment_basic_camer
 		ball->updateball(dt);
 		cannon_drawable.transform.translation = ball->position;
 		draw(cannon_drawable, environment);
-		//ball->cannongen->Draw(environment, particle_drawable);
+		ball->cannongen->Draw(environment, particle_drawable);
 	}
 	Draw_Update_Particles(dt, transformation, angle, environment);
 }
