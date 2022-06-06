@@ -2,7 +2,7 @@
 
 using namespace cgp;
 
-const std::vector<genparams> ParticleGenerator::allparams({ { 0.25f,0.01f,0.1f,1.0f,5,1.0f } });
+const std::vector<genparams> ParticleGenerator::allparams({ { 0.25f,0.01f,0.1f,1.0f,5,1.0f },{ 0.25f,0.1f,0.1f,1.0f,5,1.0f } });
 
 ParticleGenerator::ParticleGenerator(GLuint const shaderprogram, unsigned int amount,vec3 generatorposition,vec3 Velocity,int params)
     :shaderprogram(shaderprogram)

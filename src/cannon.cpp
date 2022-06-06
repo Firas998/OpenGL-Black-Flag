@@ -110,6 +110,14 @@ void cannonballgenerator::Draw_Update_Particles(float dt, cgp::affine_rts& trans
 			break;
 		}
 	}
+	/*
+	for (auto it = smokegenerators.begin(); it != smokegenerators.end(); ) {
+		if (it->ball < 0)
+			it = smokegenerators.erase(it);
+		if (it != smokegenerators.end())
+			++it;
+	}
+	*/
 
 	for (int i = 0; i < particlegenerators.size(); i++) {
 		ParticleGenerator* p = particlegenerators[i].gen;

@@ -33,7 +33,6 @@ public:
 	unsigned int shaderprogram;
 	std::vector<cannonball*> cannonballs;
 	std::deque<BlastParticleGenerator> particlegenerators;
-	std::deque<BlastParticleGenerator> smokegenerators;
 	std::vector<cgp::vec3> cannonpositionsleft;
 	std::vector<cgp::vec3> cannonpositionsright;
 	std::vector<float> cannontimersleft;
