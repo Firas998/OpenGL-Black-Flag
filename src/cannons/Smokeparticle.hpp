@@ -6,6 +6,7 @@
 using namespace cgp;
 
 
+//Les paramètres du système de particule , on utilisera 2 instances distinctes de cet objet ( 1 pour les flash de museau , 1 pour la trainée de fumée ) 
 struct genparams {
     float TotalDuration;
     float lowerradius;
@@ -16,17 +17,24 @@ struct genparams {
     int dimsize;
 };
 
+//Objet pour les particules, des systèmes de particules
 class Particle {
 public:
 	vec3 Position;
 	vec3 Velocity;
     int textureindex;
 	float Life;
+
+    //Les paramèetres du cone de vitesse
     float lowerradius;
     float higherradius;
-    float scale;
+
+    float scale;// à appliquer à la vitesse
+
     Particle(vec3 generatorposition, vec3 normal, float duration,float lowerradius, float higherradius,float scaler) : lowerradius{ lowerradius }, higherradius{ higherradius }, Life(duration) ,scale{scaler}
     {
+
+        //On crée un cone de vitesse autour du vecteur normal, et on prend une position dans le plan normal à ce vecteur
         float random1 = (double)rand() / RAND_MAX;
         float random2 = (double)rand() / RAND_MAX;
         double theta = 2 * 3.14159265358979323846264;
@@ -40,6 +48,7 @@ public:
     }
 };
 
+//Classe qui gère un système entier de particules
 class ParticleGenerator
 {
 public:

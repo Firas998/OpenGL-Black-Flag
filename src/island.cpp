@@ -16,6 +16,7 @@ float island::evaluate(float height) {
 mesh island::create_terrain_mesh()
 {
 
+    //Définition des intervalles de couleur
 	Terraintype WaterDeep = { "water_deep",0.2f,cgp::vec3(0.007f,0.294f,0.525f) };
     Terraintype WaterShallow = { "water_shallow",0.5f,cgp::vec3(0.7764f,0.9f,0.925f) };
     Terraintype Sand = { "sand" ,1.2f,cgp::vec3(0.761f,0.968f,0.5f) };
@@ -29,7 +30,7 @@ mesh island::create_terrain_mesh()
     regions.push_back(Rock2);
     regions.push_back(Snow);
 	int const terrain_sample = 100;
-    vec3 offset = { 250,250,0 };
+    vec3 offset = { 250,250,0 }; //Position du centre de la grid, dans le worldspace
 	mesh terrain = mesh_primitive_grid(offset+vec3(- 100, -100, 0), offset + vec3(100, -100, 0), offset + vec3(100, 100, 0 ), offset +vec3( - 100, 100, 0 ), terrain_sample, terrain_sample);
     
     

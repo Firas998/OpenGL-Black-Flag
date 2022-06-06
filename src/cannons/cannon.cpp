@@ -7,7 +7,10 @@ using namespace cgp;
 const cgp::vec3 cannonball::g = cgp::vec3(0, 0, -9.81f);
 
 void cannonballgenerator::initialize(GLuint const prog, Ship& other_ship) {
+	
 	shaderprogram = prog;
+
+	//Initialisation de mesh_drawable pour le tirs de canon
 	this->other_ship = &other_ship;
 	texture_id = cgp::opengl_load_texture_image("assets/Explosion02_5x5.png",
 		GL_REPEAT,
@@ -17,6 +20,7 @@ void cannonballgenerator::initialize(GLuint const prog, Ship& other_ship) {
 	particle_drawable.shader = shaderprogram;
 	particle_drawable.texture = texture_id;
 
+	//Initialisation de mesh_drawable pour les smoketrails des boules du canon
 	texture_id_smoke = cgp::opengl_load_texture_image("assets/Cloud04_8x8.png",
 		GL_REPEAT,
 		GL_REPEAT);
@@ -34,7 +38,7 @@ void cannonballgenerator::initialize(GLuint const prog, Ship& other_ship) {
 	cannontimersleft = std::vector<float>({ 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,1.0f });
 	cannontimersright = std::vector<float>({ 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,1.0f });
 
-
+	// Ajout des positions locales des canons par rapport au bateau
 	cannonpositionsright.push_back((vec3(23.264f, 4.6946f, -7.8289f) + vec3(23.264f, 4.6025f, -7.8289f)) / 2);
 	cannonpositionsright.push_back((vec3(20.218f, 4.45f, -7.1893f) + vec3(20.218f, 4.35865f, -7.1893f)) / 2);
 	cannonpositionsright.push_back((vec3(17.343f, 4.27f, -6.8868f) + vec3(17.343f, 4.1786f, -6.8868f)) / 2);
@@ -58,7 +62,7 @@ void cannonballgenerator::initialize(GLuint const prog, Ship& other_ship) {
 
 }
 
-
+//Mise à jour des boules du canon pendant le vol
 void cannonball::updateball(float dt) {
 	speed = speed + dt * g;
 	position=position + dt * speed;
@@ -69,6 +73,7 @@ void cannonballgenerator::drawballs(float dt, cgp::scene_environment_basic_camer
 		cannontimersleft[i] -= dt;
 		cannontimersright[i] -= dt;
 
+		//Si on appuie sur le bouton K , on tire des projectils à gauche
 		if (cannontimersleft[i] < 0 && left) {
 			cannontimersleft[i] = 3 + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (2 - 1)));
 			cannonball *ball = new cannonball(cannonpositionsleft[i], transformation, angle, cgp::vec3(0, 25, 15));
@@ -77,6 +82,7 @@ void cannonballgenerator::drawballs(float dt, cgp::scene_environment_basic_camer
 			cannonballs.push_back(ball);
 			createblast(cannonpositionsleft[i], transformation, angle,cgp::vec3(0,1,0));
 		}
+		//Si on appuie sur le bouton L , on tire des projectils à droite
 		else if (cannontimersright[i] < 0 && right) {
 			cannontimersright[i] = 3 + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (2 - 1)));
 			cannonball* ball = new cannonball(cannonpositionsleft[i], transformation, angle, cgp::vec3(0, -25, 15));
@@ -86,12 +92,14 @@ void cannonballgenerator::drawballs(float dt, cgp::scene_environment_basic_camer
 			createblast(cannonpositionsright[i], transformation, angle, cgp::vec3(0, -1, 0));
 		}
 	}
-
+	
+	//On supprime les boules de canon rentrées dans l'eau
 	while (cannonballs.size() > 0 && cannonballs.front()->position.z < 0) {
 		delete cannonballs.front();
 		cannonballs.pop_front();
 	}
 
+	//Détection de collision des boules du canon avec le deuxième bateau
 	for (auto it = cannonballs.begin(); it != cannonballs.end(); ) {
 		cgp::vec3 position = (*it)->position;
 		cgp::affine_rts inv = inverse(ship2_transform);
@@ -110,7 +118,7 @@ void cannonballgenerator::drawballs(float dt, cgp::scene_environment_basic_camer
 
 	}
 
-
+	//Mise à jour et rendu des boules de canons
 	for (cannonball *ball : cannonballs)
 	{
 		ball->updateball(dt);
@@ -121,6 +129,7 @@ void cannonballgenerator::drawballs(float dt, cgp::scene_environment_basic_camer
 	Draw_Update_Particles(dt, transformation, angle, environment);
 }
 
+//Création de l'effet de flash de museau à l'instant du tir d'un canon
 void cannonballgenerator::createblast(cgp::vec3 theposition, cgp::affine_rts& transformation, float angle,cgp::vec3 Velocity) {
 
 	cgp::rotation_transform RTest = cgp::rotation_transform::from_axis_angle({ 0,0,1 }, angle);
@@ -134,6 +143,7 @@ void cannonballgenerator::createblast(cgp::vec3 theposition, cgp::affine_rts& tr
 
 };
 
+//Mise à jour et rendu du système de particules de flash de museau
 void cannonballgenerator::Draw_Update_Particles(float dt, cgp::affine_rts& transformation, float angle, cgp::scene_environment_basic_camera_spherical_coords& environment){
 	while (particlegenerators.size() > 0 && particlegenerators.front().gen->Life < 0) {
 		delete particlegenerators.front().gen;

@@ -5,6 +5,7 @@
 #include "smokeparticle.hpp"
 #include "ship/ship.hpp"
 
+// Objets pour les boules tirées par les canons
 class cannonball {
 public:
 	ParticleGenerator* cannongen;
@@ -21,6 +22,7 @@ public:
 	void updateball(float dt);
 };
 
+//objets qui gérent les systèmes de particules de flash de museau
 struct BlastParticleGenerator {
 	ParticleGenerator* gen;
 	cgp::vec3 cannon_local_position;
@@ -29,6 +31,7 @@ struct BlastParticleGenerator {
 	BlastParticleGenerator(ParticleGenerator *gen, cgp::vec3 cannon_local_position, cgp::vec3 Velocity) :gen{ gen }, cannon_local_position{ cannon_local_position }, Velocity{ Velocity }{}
 };
 
+//Objet qui gère les canons du bateau
 class cannonballgenerator {
 
 private:

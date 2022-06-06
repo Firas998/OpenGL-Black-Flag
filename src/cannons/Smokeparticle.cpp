@@ -2,6 +2,7 @@
 
 using namespace cgp;
 
+//Deux objets de parametres pour les systèmes de particules
 const std::vector<genparams> ParticleGenerator::allparams({ { 0.25f,0.01f,0.1f,1.0f,5,1.0f,5 },{ 0.25f,0.1f,0.1f,3.0f,20,10.0f,8 } });
 
 ParticleGenerator::ParticleGenerator(GLuint const shaderprogram, GLuint const texture_id, unsigned int amount,vec3 generatorposition,vec3 Velocity,int params)
