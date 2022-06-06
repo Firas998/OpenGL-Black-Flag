@@ -3,7 +3,6 @@
 #include "cgp/cgp.hpp"
 #include <iostream>
 #include <vector>
-#include "interpolation.hpp"
 
 float interpolation(float t, cgp::buffer<float> x_axis,cgp::buffer<float> y_axis);
 
