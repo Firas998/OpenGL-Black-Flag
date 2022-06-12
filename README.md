@@ -10,6 +10,15 @@ In this project, we wanted to demonstrate a pirate ship at sea, with functional 
 
 Please go take a look at our demo clip [here](https://www.youtube.com/watch?v=TKyNyBxJt5c) !
 
+Screenshots:
+
+![Screen1](https://user-images.githubusercontent.com/59528773/173236023-3178ceaf-bd0f-4e0f-863c-b2983522e3b6.png)
+![Screen2](https://user-images.githubusercontent.com/59528773/173236028-46f93e43-b152-420e-93dd-3af66be78523.png)
+![Screen3](https://user-images.githubusercontent.com/59528773/173236034-a88e2c64-9c50-4021-935e-0951d7e3961f.png)
+![Screen4](https://user-images.githubusercontent.com/59528773/173236036-c4a3ae1b-3622-4f46-bfdb-f6073a98ad0b.png)
+![Screen5](https://user-images.githubusercontent.com/59528773/173236041-16ea99d3-6b67-458c-af94-3639f89ae6cb.png)
+
+
 ## Installing and running
 
 If you download the source code from the release, everything is ready to run out of the box. Just run `setup.bat` to install vcpkg dependencies and you're good to go!
