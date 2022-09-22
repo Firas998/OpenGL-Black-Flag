@@ -56,4 +56,6 @@ Otherwise, please follow the steps below to set everything up manually.
 
 -   `FFTWater` is based on the FFTOceanWater advanced sample from `opengl-es-sdk-for-android` ([GitHub](https://github.com/ARM-software/opengl-es-sdk-for-android/tree/master/samples/advanced_samples/FFTOceanWater)). We made numerous changes to this code to make it compatible with OpenGL 4.6 instead of OpenGL ES and to adapt the result to our project.
 
+-   `FFTW3` is required. Add the precompiled library into a `precompiled/fftw3` folder. You can download the library from https://www.fftw.org/
+
 -   The ship is an asset named "Black Pearl" made by "Dazimbane" on RenderHub.
